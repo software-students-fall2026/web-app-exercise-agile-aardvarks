@@ -1,10 +1,81 @@
-{% extends "base.html" %}
-{% block content %}
-  <h1>Games</h1>
-  {% for game in games %}
-    <div class="card">
-      <h2>{{ game.title }}</h2>
-      <p>{{ game.genre }} · {{ game.year }}</p>
-    </div>
-  {% endfor %}
-{% endblock %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Rankings</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<main>
+    <h2>Top Games</h2>
+
+    <table class="game-table">
+        <thead>
+            <tr>
+                <th>Rank</th>
+                <th>Title</th>
+                <th>Score</th>
+                <th>Your Score</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for game in games %}
+            <tr>
+                <td class="rank">
+                    {{ loop.index }}
+                </td>
+
+                <td>
+                    <div class="game-info">
+
+                        <img
+                            src="{{ url_for('static', filename='images/' ~ game.title ~ '.jpg') }}"
+                            alt="{{ game.title }}"
+                            class="game-cover"
+                        >
+
+                        <div>
+                            <h3>{{ game.title }}</h3>
+                            <p>{{ game.genre }}</p>
+                            <p>{{ game.platform }} · {{ game.year }}</p>
+                            <p class="description">
+                                {{ game.description }}
+                            </p>
+                        </div>
+
+                    </div>
+                </td>
+
+                <td class="score">
+                    {% if game.score is defined %}
+                        <span class="star">★</span>
+                        {{ game.score }}
+                    {% else %}
+                        ☆ N/A
+                    {% endif %}
+                </td>
+
+                <td class="user-score">
+                    {% if game.user_score is defined %}
+                        ★ {{ game.user_score }}
+                    {% else %}
+                        ☆ N/A
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="4">No games found.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</main>
+
+</body>
+</html>
