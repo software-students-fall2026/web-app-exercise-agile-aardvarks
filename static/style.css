@@ -1,0 +1,103 @@
+:root {
+    --bg: #111;
+    --panel: #181818;
+    --panel-alt: #1e1e1e;
+    --line: #2a2a2a;
+    --text: #ddd;
+    --muted: #888;
+    --link: #a9c4ee;
+    --accent: #e0a526;
+}
+
+body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Top bar */
+header {
+    background: #222;
+    border-bottom: 3px solid var(--accent);
+    padding: 12px;
+}
+header a {
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+main {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 0 12px;
+}
+
+/* Section heading */
+.listing-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 8px;
+}
+.listing-head h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.5rem;
+    font-weight: normal;
+    color: #eee;
+}
+.count { font-size: 0.8rem; color: var(--muted); }
+
+/* Rows */
+.game-list { list-style: none; margin: 0; padding: 0; background: var(--panel); }
+.game-row {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    border-bottom: 1px solid var(--line);
+}
+.game-row:nth-child(even) { background: var(--panel-alt); }
+
+.cover {
+    display: block;
+    width: 60px;
+    height: 85px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.cover.placeholder {
+    background: #2b2b2b;
+    border: 1px solid #3a3a3a;
+    color: var(--accent);
+    font-family: Georgia, serif;
+    font-size: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.details { min-width: 0; }
+.details h2 { margin: 0 0 4px; font-size: 1rem; }
+.details h2 a { color: var(--link); text-decoration: none; }
+.details h2 a:hover { text-decoration: underline; }
+
+.meta {
+    margin: 0 0 6px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    text-transform: uppercase;
+}
+.blurb {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #aaa;
+    line-height: 1.4;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Cuts long descriptions off */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.empty { color: var(--muted); padding: 16px 0; }
