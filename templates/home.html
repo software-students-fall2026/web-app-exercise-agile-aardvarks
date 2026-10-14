@@ -1,81 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="listing-head">
+        <h1>Game Library</h1>
+        <span class="count">{{ games|length }} titles</span>
+    </div>
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Rankings</title>
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-
-<main>
-    <h2>Top Games</h2>
-
-    <table class="game-table">
-        <thead>
-            <tr>
-                <th>Rank</th>
-                <th>Title</th>
-                <th>Score</th>
-                <th>Your Score</th>
-            </tr>
-        </thead>
-
-        <tbody>
+    {% if games %}
+        <ul class="game-list">
             {% for game in games %}
-            <tr>
-                <td class="rank">
-                    {{ loop.index }}
-                </td>
+                <li class="game-row">
+                    <a class="cover-link" href="/game/{{ game._id }}">
+                        {% if game.get("image_url") %}
+                            <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+                        {% else %}
+                            <div class="cover placeholder">{{ game.get("title", "?")[0] }}</div>
+                        {% endif %}
+                    </a>
 
-                <td>
-                    <div class="game-info">
-
-                        <img
-                            src="{{ url_for('static', filename='images/' ~ game.title ~ '.jpg') }}"
-                            alt="{{ game.title }}"
-                            class="game-cover"
-                        >
-
-                        <div>
-                            <h3>{{ game.title }}</h3>
-                            <p>{{ game.genre }}</p>
-                            <p>{{ game.platform }} · {{ game.year }}</p>
-                            <p class="description">
-                                {{ game.description }}
-                            </p>
-                        </div>
-
+                    <div class="details">
+                        <h2><a href="/game/{{ game._id }}">{{ game.get("title", "Untitled") }}</a></h2>
+                        <p class="meta">
+                            {{ game.get("genre", "Unknown genre") }}
+                            · {{ game.get("platform", "N/A") }}
+                            · {{ game.get("year", "N/A") }}
+                        </p>
+                        {% if game.get("description") %}
+                            <p class="blurb">{{ game.description }}</p>
+                        {% endif %}
                     </div>
-                </td>
-
-                <td class="score">
-                    {% if game.score is defined %}
-                        <span class="star">★</span>
-                        {{ game.score }}
-                    {% else %}
-                        ☆ N/A
-                    {% endif %}
-                </td>
-
-                <td class="user-score">
-                    {% if game.user_score is defined %}
-                        ★ {{ game.user_score }}
-                    {% else %}
-                        ☆ N/A
-                    {% endif %}
-                </td>
-            </tr>
-            {% else %}
-            <tr>
-                <td colspan="4">No games found.</td>
-            </tr>
+                </li>
             {% endfor %}
-        </tbody>
-    </table>
-</main>
-
-</body>
-</html>
+        </ul>
+    {% else %}
+        <p class="empty">No games yet. Run <code>python seed.py</code> to add some.</p>
+    {% endif %}
+{% endblock %}
