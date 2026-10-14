@@ -7,7 +7,15 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <header><a href="/">Game Reviews</a></header>
+    <header class="site-header">
+        <a class="brand" href="{{ url_for('home') }}">Game Reviews</a>
+        <nav class="nav-links">
+            <a href="{{ url_for('home') }}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
+            <!-- Change to url_for('search') later once page exists -->
+            <a href="/search" class="{% if request.path == '/search' %}active{% endif %}">Search</a>
+            <a href="{{ url_for('add_game') }}" class="{% if request.path == '/add-game' %}active{% endif %}">Add Game</a>
+        </nav>
+    </header>
     <main>{% block content %}{% endblock %}</main>
 </body>
 </html>
