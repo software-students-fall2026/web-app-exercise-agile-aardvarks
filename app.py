@@ -1,7 +1,6 @@
 import os
-import seed
 from dotenv import load_dotenv
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect
 from pymongo import MongoClient
 
 load_dotenv()
@@ -18,6 +17,20 @@ def home():
     return render_template("home.html", games=games)
 
 # TODO (assign via Issues at some point): game details, review details, write review, edit review, delete review, search, add game, decide on others
+
+@app.route("/add-game", methods=["GET", "POST"])
+def add_game():
+    if request.method == "POST":
+        game = {
+            "title": request.form["title"].strip(),
+            "genre": request.form["genre"].strip(),
+            "platform": request.form["platform"].strip(),
+            "year": int(request.form["year"]),
+            "description": request.form["description"].strip(),
+        }
+        db.games.insert_one(game)
+        return redirect("/")      # switch to the new game's page once details exists
+    return render_template("add_game.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

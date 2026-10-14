@@ -37,12 +37,12 @@ The application must consist of at least 6 different screens.
 
 Teams must work following an "agile" methodology. While there are exist variety of ways teams often implement so-called agile development, in our case, this means specifically the following:
 
-### Team communication channel
+### Discord channel
 
-Teams must create a public channel in the course messaging app to use for team communication
+Teams must create a public channel in the course Discord server to use for team communication
 
 - teams are expected to self-organize and create and join the channel themselves
-- name the channel after your team, e.g. `team-7`.
+- name the Discord channel after your team, e.g. `team-7`.
 
 ### Product vision statement
 
@@ -87,7 +87,7 @@ Teams must hold 3 or more "daily" standup meetings per week.
   - what have I done since last meeting?
   - what am I working on now?
   - what problems are blocking me for continuing?
-- at the conclusion of each daily standup, one team member must create a single post in the team's channel in the course messaging app that documents each member's answers to each of these questions.
+- at the conclusion of each daily standup, one team member must create a single post in the team's Discord channel that documents each member's answers to each of these questions.
 - any blocking problems must be immediately addressed by the team; if the team cannot solve it internally, it must be brought to the attention of the manager (i.e. the professor).
 
 ### GitHub repository
@@ -114,6 +114,6 @@ Fix any problems it reports, then approve the hooks in each AI coding tool you h
 
 ### Submitting
 
-The project must be submitted by pushing to the team's GitHub repository. The `main`/`master` branch will be considered the final code. Share the web address of the team's repository using the messaging app specified by your instructor. Any `.env` files must be submitted to admins/managers via the team's messenger channel.
+The project must be submitted by pushing to the team's GitHub repository. The `main`/`master` branch will be considered the final code. Post the web address of the team's repository in the team's Discord channel. Any `.env` files must be submitted to admins/managers via the team's messenger channel.
 
 Teams do not need to deploy the application to a server. It must simply work when run locally. However, if an online deployment is desired, we recommend hosting it with [Digital Ocean](https://m.do.co/c/4d1066078eb0) (referral link with discount code).

@@ -8,7 +8,8 @@ We are building a game review database for gamers, so that they can find games w
 
 ## User stories
 
-See instructions. Delete this line and place a link to the user stories here.
+User stories are tracked as GitHub Issues: [View all user stories](https://github.com/software-students-fall2026/web-app-exercise-agile-aardvarks/issues)
+Each story follows the format "As a [user type], I want [goal], so that [reason]."
 
 ## Steps necessary to run the software
 
@@ -24,4 +25,7 @@ See instructions. Delete this line and place a link to the user stories here.
 
 ## Task boards
 
-See instructions. Delete this line and place a link to the task boards here.
+Each sprint has its own GitHub Project board:
+
+- [Agile Aardvarks - Sprint 1](https://github.com/orgs/software-students-fall2026/projects/4/views/1)
+- [Agile Aardvarks - Sprint 2]()
