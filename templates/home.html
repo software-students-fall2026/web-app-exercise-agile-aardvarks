@@ -1,10 +1,37 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Games</h1>
-  {% for game in games %}
-    <div class="card">
-      <h2>{{ game.title }}</h2>
-      <p>{{ game.genre }} · {{ game.year }}</p>
+    <div class="listing-head">
+        <h1>Game Library</h1>
+        <span class="count">{{ games|length }} titles</span>
     </div>
-  {% endfor %}
+
+    {% if games %}
+        <ul class="game-list">
+            {% for game in games %}
+                <li class="game-row">
+                    <a class="cover-link" href="/game/{{ game._id }}">
+                        {% if game.get("image_url") %}
+                            <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+                        {% else %}
+                            <div class="cover placeholder">{{ game.get("title", "?")[0] }}</div>
+                        {% endif %}
+                    </a>
+
+                    <div class="details">
+                        <h2><a href="/game/{{ game._id }}">{{ game.get("title", "Untitled") }}</a></h2>
+                        <p class="meta">
+                            {{ game.get("genre", "Unknown genre") }}
+                            · {{ game.get("platform", "N/A") }}
+                            · {{ game.get("year", "N/A") }}
+                        </p>
+                        {% if game.get("description") %}
+                            <p class="blurb">{{ game.description }}</p>
+                        {% endif %}
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty">No games yet. Run <code>python seed.py</code> to add some.</p>
+    {% endif %}
 {% endblock %}
