@@ -53,17 +53,15 @@ def write_review(game_id):
         form["rating"] = request.form.get("rating", "").strip()
         form["text"] = request.form.get("text", "").strip()
 
+        rating = int(form["rating"])
+
         # Validation
         if not form["reviewer"]:
             errors.append("Please enter your name.")
         if not form["text"]:
             errors.append("Please write a review.")
-        try:
-            rating = int(form["rating"])
-            if not 1 <= rating <= 10:
-                errors.append("Rating must be between 1 and 10.")
-        except ValueError:
-            errors.append("Rating must be a whole number.")
+        if not form["rating"]:
+            errors.append("Please choose a rating.")
 
         if not errors:
             now = datetime.now(timezone.utc)

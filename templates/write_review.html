@@ -1,30 +1,68 @@
 {% extends "base.html" %}
 {% block content %}
-  <h1>Review {{ game.get("title") }}</h1>
+    <!-- Review page layout: game summary beside the form used to submit a new review -->
+    <div class="review-layout">
+        <aside class="game-summary">
+            <!-- Show selected game's cover when available, else same placeholder fallback as list view -->
+            {% if game.get("image_url") %}
+                <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+            {% else %}
+                <div class="cover placeholder">{{ game.get("title", "?")[0] }}</div>
+            {% endif %}
+            <div class="summary-text">
+                <h2>{{ game.get("title", "Untitled") }}</h2>
+                <p class="meta">
+                    {{ game.get("genre", "Unknown genre") }}
+                    · {{ game.get("platform", "N/A") }}
+                    · {{ game.get("year", "N/A") }}
+                </p>
+                <p class="desc">{{ game.get("description", "") }}</p>
+            </div>
+        </aside>
 
-  {% if errors %}
-    <ul class="errors">
-      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
-    </ul>
-  {% endif %}
+        <section class="review-form">
+            <h1>Write a Review</h1>
 
-  <form method="POST">
-    <div class="field">
-      <label for="reviewer">Your name</label>
-      <input type="text" id="reviewer" name="reviewer" value="{{ form.reviewer }}" required>
+            <!-- Display validation errors (if present) above the form so users can see what needs correcting -->
+            {% if errors %}
+                <ul class="errors">
+                {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+                </ul>
+            {% endif %}
+
+            <!-- Submit review fields to route using POST -->
+            <form method="POST">
+                <!-- Groups reviewer id + rating together. Field-row controls horizontal alignment-->
+                <div class="field-row">
+                    <div class="field grow">
+                        <label for="reviewer">Your name</label>
+                        <input type="text" id="reviewer" name="reviewer" value="{{ form.reviewer }}" required>
+                    </div>
+
+                    <!-- Rating is a dropdown menu that dynamically updates based on state/user input -->
+                    <div class="field rating-field">
+                        <label for="rating">Rating</label>
+                        <select id="rating" name="rating" required>
+                            <option value="" disabled {% if not form.rating %}selected{% endif %}>/10</option>
+                            {% for n in range(1, 11) %}
+                                <option value="{{ n }}" {% if form.rating == n|string %}selected{% endif %}>{{ n }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Preserves submitted review text in textarea when re-rendering the form, including after any validation errors -->
+                <div class="field">
+                    <label for="text">Your review</label>
+                    <textarea id="text" name="text" rows="5" required>{{ form.text }}</textarea>
+                </div>
+
+                <!-- Provide primary form submission action + secondary link back to game's page-->
+                <div class="actions">
+                    <button type="submit" class="btn btn-primary">Post review</button>
+                    <a class="btn btn-secondary" href="/game/{{ game._id }}">Cancel</a>
+                </div>
+            </form>
+        </section>
     </div>
-
-    <div class="field">
-      <label for="rating">Rating (1-10)</label>
-      <input type="number" id="rating" name="rating" min="1" max="10" value="{{ form.rating }}" required>
-    </div>
-
-    <div class="field">
-      <label for="text">Your review</label>
-      <textarea id="text" name="text" rows="5" required>{{ form.text }}</textarea>
-    </div>
-
-    <button type="submit">Post review</button>
-    <a href="/game/{{ game._id }}">Cancel</a>
-  </form>
 {% endblock %}
