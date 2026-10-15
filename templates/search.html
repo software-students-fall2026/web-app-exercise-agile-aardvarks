@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Search Games{% endblock %}
+
+{% block content %}
+    <section class="search-page">
+        <div class="listing-head">
+            <div>
+                <h1>Search Games</h1>
+                <p class="search-intro">Find games by title or genre.</p>
+            </div>
+        </div>
+
+        <form action="{{ url_for('search') }}" method="get" class="game-search-form">
+            <label class="sr-only" for="game-query">Search by title or genre</label>
+            <input
+                id="game-query"
+                type="search"
+                name="q"
+                placeholder="Search by title or genre..."
+                value="{{ query }}"
+            >
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        {% if query %}
+            <div class="search-results-head">
+                <span class="count">{{ games|length }} {{ 'title' if games|length == 1 else 'titles' }}</span>
+            </div>
+
+            {% if games %}
+                <ul class="game-list">
+                    {% for game in games %}
+                        <li class="game-row">
+                            <a class="cover-link" href="{{ url_for('game_detail', game_id=game._id) }}">
+                                {% if game.get("image_url") %}
+                                    <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', 'Game') }} cover">
+                                {% else %}
+                                    <div class="cover placeholder">{{ game.get("title", "?")[0]|upper }}</div>
+                                {% endif %}
+                            </a>
+                            <div class="details">
+                                <h2><a href="{{ url_for('game_detail', game_id=game._id) }}">{{ game.get("title", "Untitled") }}</a></h2>
+                                <p class="meta">
+                                    {{ game.get("genre", "Unknown genre") }}
+                                    · {{ game.get("platform", "N/A") }}
+                                    · {{ game.get("year", "N/A") }}
+                                </p>
+                                {% if game.get("description") %}
+                                    <p class="blurb">{{ game.description }}</p>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p class="empty">No games found matching “{{ query }}”.</p>
+            {% endif %}
+        {% else %}
+            <p class="empty">Enter a title or genre to search.</p>
+        {% endif %}
+    </section>
+{% endblock %}

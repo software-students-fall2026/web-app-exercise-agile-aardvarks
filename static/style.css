@@ -130,6 +130,34 @@ main {
 
 .empty { color: var(--muted); padding: 16px 0; }
 
+/* Search page: reuse the shared game list and keep the form consistent with other controls. */
+.search-intro { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
+.game-search-form { display: flex; gap: 8px; margin: 18px 0; }
+.game-search-form input {
+    flex: 1;
+    min-width: 0;
+    padding: 10px;
+    background: var(--panel-alt);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font: inherit;
+}
+.game-search-form input:focus { outline: none; border-color: var(--accent); }
+.game-search-form button { border: 0; border-radius: 4px; }
+.search-results-head { margin: 0 0 8px; }
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
 /* Review page layout: stack game summary + form on narrow screens, otherwise two columns */
 .review-layout { display: grid; gap: 20px; }
 

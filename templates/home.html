@@ -2,8 +2,11 @@
 {% block content %}
     <!-- Displays library heading and number of games present in view -->
     <div class="listing-head">
-        <h1>Game Library</h1>
-        <span class="count">{{ games|length }} titles</span>
+        <div>
+            <h1>Game Library</h1>
+            <span class="count">{{ games|length }} titles</span>
+        </div>
+    
     </div>
     <!-- Renders game list when games are available, else empty-state message -->
     {% if games %}
@@ -14,7 +17,7 @@
                     <a class="cover-link" href="/game/{{ game._id }}">
                         <!-- Use the game's cover image when available, otherwise show a placeholder based on its title -->
                         {% if game.get("image_url") %}
-                            <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+                            <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
                         {% else %}
                             <div class="cover placeholder">{{ game.get("title", "?")[0] }}</div>
                         {% endif %}

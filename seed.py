@@ -9,6 +9,7 @@ db = MongoClient(os.getenv("MONGO_URI"))[os.getenv("MONGO_DBNAME")]
 games = [
     {
         "title": "Hades",
+        "image_url": "images/hades.jpg",
         "genre": "Roguelike",
         "platform": "PC",
         "year": 2020,
@@ -16,6 +17,7 @@ games = [
     },
     {
         "title": "Stardew Valley",
+        "image_url": "images/stardew.jpeg",
         "genre": "Simulation",
         "platform": "PC",
         "year": 2016,
@@ -23,6 +25,7 @@ games = [
     },
     {
         "title": "Minecraft",
+        "image_url": "images/Minecraft.jpg",
         "genre": "Sandbox",
         "platform": "PC",
         "year": 2011,
@@ -30,6 +33,7 @@ games = [
     },
     {
         "title": "Terraria",
+        "image_url": "images/Terraria.jpg",
         "genre": "Sandbox",
         "platform": "PC",
         "year": 2011,
@@ -37,6 +41,7 @@ games = [
     },
     {
         "title": "Hollow Knight",
+        "image_url": "images/Hollow Knight.jpg",
         "genre": "Metroidvania",
         "platform": "PC",
         "year": 2017,
@@ -44,6 +49,7 @@ games = [
     },
     {
         "title": "Celeste",
+        "image_url": "images/Celeste.png",
         "genre": "Platformer",
         "platform": "PC",
         "year": 2018,
@@ -51,6 +57,7 @@ games = [
     },
     {
         "title": "Portal 2",
+        "image_url": "images/Portal 2.jpg",
         "genre": "Puzzle",
         "platform": "PC",
         "year": 2011,
@@ -58,6 +65,7 @@ games = [
     },
     {
         "title": "The Witcher 3: Wild Hunt",
+        "image_url": "images/Witcher_3_cover_art.jpg",
         "genre": "RPG",
         "platform": "PC",
         "year": 2015,
@@ -65,6 +73,7 @@ games = [
     },
     {
         "title": "Elden Ring",
+        "image_url": "images/eldenring.jpg",
         "genre": "Action RPG",
         "platform": "PC",
         "year": 2022,
@@ -72,6 +81,7 @@ games = [
     },
     {
         "title": "Red Dead Redemption 2",
+        "image_url": "images/Red Dead Redemption II.jpg",
         "genre": "Action Adventure",
         "platform": "PC",
         "year": 2018,
@@ -79,6 +89,7 @@ games = [
     },
     {
         "title": "Cyberpunk 2077",
+        "image_url": "images/cyberpunk.jpg",
         "genre": "Action RPG",
         "platform": "PC",
         "year": 2020,
@@ -86,6 +97,7 @@ games = [
     },
     {
         "title": "Slay the Spire",
+        "image_url": "images/Slay The Spire.jpg",
         "genre": "Deckbuilding",
         "platform": "PC",
         "year": 2019,
@@ -93,6 +105,7 @@ games = [
     },
     {
         "title": "Subnautica",
+        "image_url": "images/subnautica.jpg",
         "genre": "Survival",
         "platform": "PC",
         "year": 2018,
@@ -100,6 +113,7 @@ games = [
     },
     {
         "title": "Factorio",
+        "image_url": "images/factorio.jpeg",
         "genre": "Strategy",
         "platform": "PC",
         "year": 2020,
@@ -107,6 +121,7 @@ games = [
     },
     {
         "title": "Civilization VI",
+        "image_url": "images/Civilization 6.jpg",
         "genre": "Turn-Based Strategy",
         "platform": "PC",
         "year": 2016,
@@ -114,6 +129,7 @@ games = [
     },
     {
         "title": "Among Us",
+        "image_url": "images/Among Us.jpg",
         "genre": "Social Deduction",
         "platform": "PC",
         "year": 2018,
@@ -121,6 +137,7 @@ games = [
     },
     {
         "title": "Cuphead",
+        "image_url": "images/cuphead.jpg",
         "genre": "Run and Gun",
         "platform": "PC",
         "year": 2017,
@@ -128,6 +145,7 @@ games = [
     },
     {
         "title": "Outer Wilds",
+        "image_url": "images/Outer Wilds.jpg",
         "genre": "Exploration",
         "platform": "PC",
         "year": 2019,
@@ -135,6 +153,7 @@ games = [
     },
     {
         "title": "Dead Cells",
+        "image_url": "images/deadcells.jpg",
         "genre": "Roguelike",
         "platform": "PC",
         "year": 2018,
@@ -142,6 +161,7 @@ games = [
     },
     {
         "title": "Balatro",
+        "image_url": "images/Balatro.jpg",
         "genre": "Deckbuilding",
         "platform": "PC",
         "year": 2024,
@@ -150,9 +170,16 @@ games = [
 ]
 
 for game in games:
-    if db.games.find_one({"title": game["title"]}) is None:
+    existing_game = db.games.find_one({"title": game["title"]})
+    if existing_game is None:
         db.games.insert_one(game)
         print(f"Inserted {game['title']}")
+    elif not existing_game.get("image_url"):
+        db.games.update_one(
+            {"_id": existing_game["_id"]},
+            {"$set": {"image_url": game["image_url"]}},
+        )
+        print(f"Added image path for {game['title']}")
 
 def day(d):
     # Helps to quickly return a UTC datetime for Oct <d>, 2026 at noon
@@ -164,7 +191,7 @@ sample_reviews = [
     ("Hades", "Aristophanes", 6, "Noting a lack of ancient globule humans.", 2, 1, day(10), day(10)),
     ("Stardew Valley", "Napoleon", 10, "Finally, a farm fully under my own grasp.", 7, 0, day(9), day(9)),
     ("Stardew Valley", "Hannibal", 7, "Fun, but the first few days are slow.", 1, 1, day(11), day(12)),
-    ("Minecraft", "Augustus", 1, "Best game I've ever played.", 3, , day(13), day(13))
+    ("Minecraft", "Augustus", 1, "Best game I've ever played.", 3, 0, day(13), day(13))
 ]
 
 inserted = 0

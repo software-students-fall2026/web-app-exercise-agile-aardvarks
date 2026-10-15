@@ -21,6 +21,20 @@ def home():
     return render_template("home.html", games=games)
 
 
+@app.route("/search")
+def search():
+    query = request.args.get("q", "").strip()
+    games = []
+    if query:
+        games = list(db.games.find({
+            "$or": [
+                {"title": {"$regex": query, "$options": "i"}},
+                {"genre": {"$regex": query, "$options": "i"}},
+            ]
+        }).sort("title", 1))
+    return render_template("search.html", games=games, query=query)
+
+
 @app.route("/game/<game_id>")
 def game_detail(game_id):
     try:
