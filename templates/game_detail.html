@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="game-detail">
+  {% if game.get("image_url") %}
+    <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+  {% endif %}
+
+  <h1>{{ game.get("title", "Untitled") }}</h1>
+  <p class="meta">
+    {{ game.get("genre", "Unknown genre") }}
+    · {{ game.get("platform", "N/A") }}
+    · {{ game.get("year", "N/A") }}
+  </p>
+
+  {% if game.get("description") %}
+    <p>{{ game.description }}</p>
+  {% endif %}
+
+  <h2>Reviews</h2>
+  <p class="empty">No reviews yet.</p>
+
+  <a href="/">← Back to library</a>
+</div>
+{% endblock %}
