@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Search Games{% endblock %}
+
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Search Games</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <main class="search-page">
+
+        <div class="search-heading">
+            <h1>Search Games</h1>
+            <p>Find games by title or genre</p>
+        </div>
+
+        <form action="{{ url_for('search') }}"
+              method="GET"
+              class="game-search-form">
+
+            <input
+                type="text"
+                name="q"
+                placeholder="Search by title or genre..."
+                value="{{ query }}"
+            >
+
+            <button type="submit">Search</button>
+        </form>
+
+        {% if query %}
+
+            <div class="listing-head">
+                <span class="count">{{ games|length }} titles</span>
+            </div>
+
+            {% if games %}
+
+                <ul class="game-list">
+                    {% for game in games %}
+
+                        <li class="game-row">
+
+                            {% if game.image %}
+                                <img
+                                    class="cover"
+                                    src="{{ url_for('static', filename=game.image) }}"
+                                    alt="{{ game.title }} cover"
+                                >
+                            {% else %}
+                                <div class="cover placeholder">
+                                    {{ game.title[0]|upper }}
+                                </div>
+                            {% endif %}
+
+                            <div class="details">
+
+                                <h2>
+                                    <a href="{{ url_for('game_details', game_id=game['_id']) }}">
+                                        {{ game.title }}
+                                    </a>
+                                </h2>
+
+                                <p class="meta">
+                                    {{ game.genre }} · {{ game.platform }} · {{ game.year }}
+                                </p>
+
+                                <p class="blurb">
+                                    {{ game.description }}
+                                </p>
+
+                            </div>
+
+                        </li>
+
+                    {% endfor %}
+                </ul>
+
+            {% else %}
+
+                <p class="empty">
+                    No games found matching "{{ query }}".
+                </p>
+
+            {% endif %}
+
+        {% else %}
+
+            <p class="empty">
+                Enter a title or genre to search.
+            </p>
+
+        {% endif %}
+
+    </main>
+
+</body>
+</html>
+
+{% endblock %}

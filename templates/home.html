@@ -1,8 +1,12 @@
 {% extends "base.html" %}
 {% block content %}
     <div class="listing-head">
-        <h1>Game Library</h1>
-        <span class="count">{{ games|length }} titles</span>
+        <div>
+            <h1>Game Library</h1>
+            <span class="count">{{ games|length }} titles</span>
+        </div>
+    
+        <a href="/search" class="search-button">Search Games</a>
     </div>
 
     {% if games %}

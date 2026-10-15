@@ -6,6 +6,7 @@ load_dotenv()
 db = MongoClient(os.getenv("MONGO_URI"))[os.getenv("MONGO_DBNAME")]
 
 
+
 games = [
     {
         "title": "Hades",
@@ -149,7 +150,36 @@ games = [
     }
 ]
 
+image_files = {
+    "Hades": "hades.jpg",
+    "Stardew Valley": "stardew.jpeg",
+    "Minecraft": "Minecraft.jpg",
+    "Terraria": "Terraria.jpg",
+    "Hollow Knight": "Hollow Knight.jpg",
+    "Celeste": "Celeste.png",
+    "Portal 2": "Portal 2.jpg",
+    "The Witcher 3: Wild Hunt": "Witcher_3_cover_art.jpg",
+    "Elden Ring": "eldenring.jpg",
+    "Red Dead Redemption 2": "Red Dead Redemption II.jpg",
+    "Cyberpunk 2077": "cyberpunk.jpg",
+    "Slay the Spire": "Slay The Spire.jpg",
+    "Subnautica": "subnautica.jpg",
+    "Factorio": "factorio.jpeg",
+    "Civilization VI": "Civilization 6.jpg",
+    "Among Us": "Among Us.jpg",
+    "Cuphead": "cuphead.jpg",
+    "Outer Wilds": "Outer Wilds.jpg",
+    "Dead Cells": "deadcells.jpg",
+    "Balatro": "Balatro.jpg"
+}
+
 for game in games:
-    if db.games.find_one({"title": game["title"]}) is None:
-        db.games.insert_one(game)
-        print(f"Inserted {game['title']}")
+    game["image"] = "images/" + image_files[game["title"]]
+
+for game in games:
+    db.games.update_one(
+        {"title": game["title"]},
+        {"$set": game},
+        upsert=True
+    )
+    print(f"Updated {game['title']}")
