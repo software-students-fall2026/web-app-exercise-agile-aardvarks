@@ -18,7 +18,23 @@
   {% endif %}
 
   <h2>Reviews</h2>
-  <p class="empty">No reviews yet.</p>
+  <a href="/game/{{ game._id }}/review">Write a review</a>
+
+  {% if reviews %}
+    <ul class="review-list">
+      {% for review in reviews %}
+        <li>
+          <a href="/review/{{ review._id }}">
+            <strong>{{ review.get("reviewer", "Anonymous") }}</strong>
+            · {{ review.get("rating", "?") }}/10
+          </a>
+          <p>{{ review.get("text", "")|truncate(100) }}</p>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty">No reviews yet.</p>
+  {% endif %}
 
   <a href="/">← Back to library</a>
 </div>

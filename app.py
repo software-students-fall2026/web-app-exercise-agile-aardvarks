@@ -28,7 +28,8 @@ def game_detail(game_id):
         game = None
     if game is None:
         abort(404)
-    return render_template("game_detail.html", game=game)
+    reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
+    return render_template("game_detail.html", game=game, reviews=reviews)
 
 # TODO (assign via Issues at some point): game details, review details, write review, edit review, delete review, search, add game, decide on others
 
