@@ -18,6 +18,20 @@ def home():
     games = list(db.games.find().sort("title", 1))
     return render_template("home.html", games=games)
 
+
+
+@app.route("/game/<game_id>")
+def game_detail(game_id):
+    try:
+        game = db.games.find_one({"_id": ObjectId(game_id)})
+    except InvalidId:
+        game = None
+    if game is None:
+        abort(404)
+    reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
+    return render_template("game_detail.html", game=game, reviews=reviews)
+
+'''
 @app.route("/game/<game_id>")
 def game_detail(game_id):
     try:
@@ -27,7 +41,7 @@ def game_detail(game_id):
     if game is None:
         abort(404)
     return render_template("game_detail.html", game=game)
-
+'''
 # TODO (assign via Issues at some point): game details, review details, write review, edit review, delete review, search, add game, decide on others
 
 @app.route("/add-game", methods=["GET", "POST"])
