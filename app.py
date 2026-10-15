@@ -5,12 +5,13 @@ from flask import Flask, render_template, request, redirect, abort
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+import certifi # For establishing trusted connection to AtlasDB
 
 load_dotenv()
 
 app = Flask(__name__)
 
-client = MongoClient(os.getenv("MONGO_URI"))
+client = MongoClient(os.getenv("MONGO_URI"),tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
 
 
