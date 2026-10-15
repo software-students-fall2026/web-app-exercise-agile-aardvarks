@@ -1,10 +1,10 @@
 import os
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, abort
-from datetime import datetime, timezone
+from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from pymongo import MongoClient
 
 load_dotenv()
 
@@ -19,7 +19,18 @@ def home():
     games = list(db.games.find().sort("title", 1))
     return render_template("home.html", games=games)
 
-# TODO (assign via Issues at some point): review details, edit review, delete review, search, decide on others
+
+@app.route("/game/<game_id>")
+def game_detail(game_id):
+    try:
+        game = db.games.find_one({"_id": ObjectId(game_id)})
+    except InvalidId:
+        game = None
+    if game is None:
+        abort(404)
+    return render_template("game_detail.html", game=game)
+
+# TODO (assign via Issues at some point): game details, review details, write review, edit review, delete review, search, add game, decide on others
 
 @app.route("/add-game", methods=["GET", "POST"])
 def add_game():
