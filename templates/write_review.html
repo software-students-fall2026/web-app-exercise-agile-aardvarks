@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>Review {{ game.get("title") }}</h1>
+
+  {% if errors %}
+    <ul class="errors">
+      {% for e in errors %}<li>{{ e }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+
+  <form method="POST">
+    <div class="field">
+      <label for="reviewer">Your name</label>
+      <input type="text" id="reviewer" name="reviewer" value="{{ form.reviewer }}" required>
+    </div>
+
+    <div class="field">
+      <label for="rating">Rating (1-10)</label>
+      <input type="number" id="rating" name="rating" min="1" max="10" value="{{ form.rating }}" required>
+    </div>
+
+    <div class="field">
+      <label for="text">Your review</label>
+      <textarea id="text" name="text" rows="5" required>{{ form.text }}</textarea>
+    </div>
+
+    <button type="submit">Post review</button>
+    <a href="/game/{{ game._id }}">Cancel</a>
+  </form>
+{% endblock %}

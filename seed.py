@@ -164,7 +164,7 @@ sample_reviews = [
     ("Hades", "Aristophanes", 6, "Noting a lack of ancient globule humans.", 2, 1, day(10), day(10)),
     ("Stardew Valley", "Napoleon", 10, "Finally, a farm fully under my own grasp.", 7, 0, day(9), day(9)),
     ("Stardew Valley", "Hannibal", 7, "Fun, but the first few days are slow.", 1, 1, day(11), day(12)),
-    ("Minecraft", "Augustus", 1, "Best game I've ever played.", 3, , day(13), day(13)),
+    ("Minecraft", "Augustus", 1, "Best game I've ever played.", 3, , day(13), day(13))
 ]
 
 inserted = 0
