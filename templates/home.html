@@ -1,21 +1,23 @@
 {% extends "base.html" %}
 {% block content %}
+    <!-- Displays library heading and number of games present in view -->
     <div class="listing-head">
         <div>
             <h1>Game Library</h1>
             <span class="count">{{ games|length }} titles</span>
         </div>
     
-        <a href="/search" class="search-button">Search Games</a>
     </div>
-
+    <!-- Renders game list when games are available, else empty-state message -->
     {% if games %}
         <ul class="game-list">
+            <!-- One list item per game. Each item links to its details page and displays cover art + metadata -->
             {% for game in games %}
                 <li class="game-row">
                     <a class="cover-link" href="/game/{{ game._id }}">
+                        <!-- Use the game's cover image when available, otherwise show a placeholder based on its title -->
                         {% if game.get("image_url") %}
-                            <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+                            <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
                         {% else %}
                             <div class="cover placeholder">{{ game.get("title", "?")[0] }}</div>
                         {% endif %}
@@ -23,11 +25,13 @@
 
                     <div class="details">
                         <h2><a href="/game/{{ game._id }}">{{ game.get("title", "Untitled") }}</a></h2>
+                        <!-- Displays game information with fallback values for fields that are missing -->
                         <p class="meta">
                             {{ game.get("genre", "Unknown genre") }}
                             · {{ game.get("platform", "N/A") }}
                             · {{ game.get("year", "N/A") }}
                         </p>
+                        <!-- Only render description when available, and blurb limits to 2 visible lines -->
                         {% if game.get("description") %}
                             <p class="blurb">{{ game.description }}</p>
                         {% endif %}
@@ -35,6 +39,7 @@
                 </li>
             {% endfor %}
         </ul>
+    <!-- When no games are available, instruct user on how to populate the library -->
     {% else %}
         <p class="empty">No games yet. Run <code>python seed.py</code> to add some.</p>
     {% endif %}
