@@ -1,10 +1,10 @@
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
-from datetime import datetime, timezone
 
 load_dotenv()
 db = MongoClient(os.getenv("MONGO_URI"))[os.getenv("MONGO_DBNAME")]
+
 
 games = [
     {
@@ -153,41 +153,3 @@ for game in games:
     if db.games.find_one({"title": game["title"]}) is None:
         db.games.insert_one(game)
         print(f"Inserted {game['title']}")
-
-def day(d):
-    # Helps to quickly return a UTC datetime for Oct <d>, 2026 at noon
-    return datetime(2026, 10, d, 12, 0, tzinfo=timezone.utc)
-
-# Game title, reviewer, rating, text, likes, dislikes, created_at, updated_at
-sample_reviews = [
-    ("Hades", "Cassivellaunus", 9, "Did you guys hear battle cries?.", 4, 0, day(8), day(8)),
-    ("Hades", "Aristophanes", 6, "Noting a lack of ancient globule humans.", 2, 1, day(10), day(10)),
-    ("Stardew Valley", "Napoleon", 10, "Finally, a farm fully under my own grasp.", 7, 0, day(9), day(9)),
-    ("Stardew Valley", "Hannibal", 7, "Fun, but the first few days are slow.", 1, 1, day(11), day(12)),
-    ("Minecraft", "Augustus", 1, "Best game I've ever played.", 3, 274, day(13), day(13)),
-]
-
-inserted = 0
-for title, reviewer, rating, text, likes, dislikes, created_at, updated_at in sample_reviews:
-    game = db.games.find_one({"title": title})
-    if game is None:
-        print(f"Skipping review for '{title}': game not found")
-        continue
-
-    # Skip if this exact sample review is already in the database
-    if db.reviews.find_one({"game_id": game["_id"], "reviewer": reviewer, "text": text}):
-        continue
-
-    db.reviews.insert_one({
-        "game_id": game["_id"],
-        "reviewer": reviewer,
-        "rating": rating,
-        "text": text,
-        "likes": likes,
-        "dislikes": dislikes,
-        "created_at": created_at,
-        "updated_at": updated_at,
-    })
-    inserted += 1
-
-print(f"Inserted {inserted} new reviews")
