@@ -2,9 +2,10 @@ import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
 from datetime import datetime, timezone
+import certifi
 
 load_dotenv()
-db = MongoClient(os.getenv("MONGO_URI"))[os.getenv("MONGO_DBNAME")]
+db = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 
 games = [
     {
@@ -218,3 +219,9 @@ for title, reviewer, rating, text, likes, dislikes, created_at, updated_at in sa
     inserted += 1
 
 print(f"Inserted {inserted} new reviews")
+
+# Recompute stored averages for every game that has reviews, since inserting directly skips update_average_rating() in app.py
+for game_id in db.reviews.distinct("game_id"):
+    ratings = [r["rating"] for r in db.reviews.find({"game_id": game_id}, {"rating": 1})]
+    average = round(sum(ratings) / len(ratings), 1)
+    db.games.update_one({"_id": game_id}, {"$set": {"average_rating": average}})
