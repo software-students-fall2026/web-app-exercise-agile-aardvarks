@@ -3,7 +3,7 @@
 {% block content %}
 <div class="game-detail">
   {% if game.get("image_url") %}
-    <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+    <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
   {% endif %}
 
   <h1>{{ game.get("title", "Untitled") }}</h1>

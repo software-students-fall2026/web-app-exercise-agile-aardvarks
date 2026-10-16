@@ -60,8 +60,6 @@ def game_detail(game_id):
     reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
     return render_template("game_detail.html", game=game, reviews=reviews)
 
-# TODO (assign via Issues at some point): game details, review details, write review, edit review, delete review, search, add game, decide on others
-
 @app.route("/add-game", methods=["GET", "POST"])
 def add_game():
     if request.method == "POST":
