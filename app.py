@@ -11,8 +11,22 @@ load_dotenv()
 
 app = Flask(__name__)
 
-client = MongoClient(os.getenv("MONGO_URI"),tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
+client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
+
+def update_average_rating(game_id):
+    reviews = list(db.reviews.find({"game_id": game_id}))
+    if len(reviews) == 0:
+        average = None
+    else:
+        total = 0
+        for rev in reviews:
+            total += rev["rating"]
+        average = round(total/len(reviews), 1)
+    db.games.update_one(
+        {"_id": game_id}, 
+        {"$set": {"average_rating": average}}
+    )
 
 
 @app.route("/")
@@ -57,6 +71,7 @@ def add_game():
             "platform": request.form["platform"].strip(),
             "year": int(request.form["year"]),
             "description": request.form["description"].strip(),
+            "average_rating": None,
         }
         db.games.insert_one(game)
         return redirect("/")      # switch to the new game's page once details exists
@@ -102,9 +117,11 @@ def write_review(game_id):
                 "created_at": now,
                 "updated_at": now,
             })
+            update_average_rating(game["_id"]) # Added by Angelina to save new average rating
             return redirect(f"/game/{game_id}") # Should work once Sara does details page
 
     return render_template("write_review.html", game=game, errors=errors, form=form)
+
 
 if __name__ == "__main__":
     app.run(debug=True)

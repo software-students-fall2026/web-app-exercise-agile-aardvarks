@@ -31,6 +31,11 @@
                             · {{ game.get("platform", "N/A") }}
                             · {{ game.get("year", "N/A") }}
                         </p>
+                        {% if game.get("average_rating") is not none %}
+                            <p>Average Rating: {{ "%.1f"|format(game.average_rating) }}/10</p>
+                        {% else %}
+                            <p>No reviews yet</p>
+                        {% endif %}
                         <!-- Only render description when available, and blurb limits to 2 visible lines -->
                         {% if game.get("description") %}
                             <p class="blurb">{{ game.description }}</p>
