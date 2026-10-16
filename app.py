@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, abort
+from flask import Flask, render_template, request, redirect, abort, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
@@ -134,34 +134,77 @@ def edit_review(review_id):
     if review is None:
         abort(404)
 
+    game = get_game_or_404(str(review["game_id"]))
+
+    errors = []
+
+    form = {
+        "reviewer": review["reviewer"],
+        "rating": str(review["rating"]),
+        "text": review["text"]
+    }
+
     if request.method == "POST":
-        text = request.form.get("text", "").strip()
-        rating_val = request.form.get("rating", "")
+        form["reviewer"] = request.form.get("reviewer", "").strip()
+        form["rating"] = request.form.get("rating", "").strip()
+        form["text"] = request.form.get("text", "").strip()
+
+        if not form["reviewer"]:
+            errors.append("Please enter your name.")
+        if not form["text"]:
+            errors.append("Please write a review.")
+
 
         try:
-            rating = int(rating_val)
+            rating = int(form["rating"])
+            if rating < 1 or rating > 10:
+                errors.append("Rating must be between 1 and 10.")
         except ValueError:
-            rating = 0
+            errors.append("Please choose a valid rating.")
 
-        if not text or rating < 1 or rating > 10:
-            abort(400)
+        if not errors:
+            db.reviews.update_one(
+                {"id": review["_id"]},
+                {"$set": {
+                    "reviewer": form["reviewer"],
+                    "rating": rating,
+                    "text": form["text"],
+                    "updated_at": datetime.now(timezone.utc)
+                }}
+            )
 
-        db.reviews.update_one(
-            {"id": review["_id"]},
-            {"$set": {
-                "text": text,
-                "rating": rating,
-                "updated_at": datetime.now(timezone.utc)
-            }}
+            update_average_rating(game["_id"])
+
+            return redirect(
+                url_for("game_detail", game_id=game["_id"])
+            )
+
+    return render_template(
+        "edit_review.html",
+        game=game,
+        review=review,
+        form=form,
+        errors=errors
         )
 
-        update_average_rating(review["game_id"])
 
-        return redirect(f"/game/{review['game_id']}")
+@app.route("/review/<review_id>/delete", methods=["POST"])
+def delete_review(review_id):
+    try:
+        review = db.reviews.find_one({"_id": ObjectId(review_id)})
+    except (InvalidId, TypeError):
+        abort(404)
 
-    return render_template("edit_review.html", review=review)
+    if review is None:
+        abort(404)
 
+    game_id = review["game_id"]
 
+    db.reviews.delete_one({"_id": review["_id"]})
+
+    update_average_rating(game_id)
+
+    return redirect(url_for("game_detail", game_id=game_id))
 
 
 if __name__ == "__main__":
