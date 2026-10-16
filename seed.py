@@ -5,7 +5,10 @@ from datetime import datetime, timezone
 import certifi
 
 load_dotenv()
-db = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
+mongo_uri = os.getenv("MONGO_URI")
+mongo_options = {"tlsCAFile": certifi.where()} if mongo_uri and mongo_uri.startswith("mongodb+srv://") else {}
+client = MongoClient(mongo_uri, **mongo_options)
+db = client[os.getenv("MONGO_DBNAME")]
 
 games = [
     {

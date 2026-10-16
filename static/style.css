@@ -243,15 +243,43 @@ main {
 .review-item {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: flex-start;
     gap: 16px;
     padding: 16px;
     border-bottom: 1px solid var(--line);
 }
 
+.review-text {
+    margin: 8px 0 0;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+    overflow: hidden;
+}
+
+.review-text.is-expanded {
+    display: block;
+    overflow: visible;
+}
+
+.review-toggle {
+    margin-top: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--link);
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+.review-toggle:hover { text-decoration: underline; }
+
 .review-content {
     flex: 1;
     min-width: 0;
+    overflow-wrap: anywhere;
 }
 
 .review-actions {
