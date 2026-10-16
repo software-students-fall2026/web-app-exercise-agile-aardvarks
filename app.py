@@ -164,7 +164,7 @@ def edit_review(review_id):
 
         if not errors:
             db.reviews.update_one(
-                {"id": review["_id"]},
+                {"_id": review["_id"]},
                 {"$set": {
                     "reviewer": form["reviewer"],
                     "rating": rating,
@@ -188,6 +188,7 @@ def edit_review(review_id):
         )
 
 
+
 @app.route("/review/<review_id>/delete", methods=["POST"])
 def delete_review(review_id):
     try:
@@ -205,6 +206,7 @@ def delete_review(review_id):
     update_average_rating(game_id)
 
     return redirect(url_for("game_detail", game_id=game_id))
+
 
 
 if __name__ == "__main__":
