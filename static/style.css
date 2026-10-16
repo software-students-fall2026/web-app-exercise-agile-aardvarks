@@ -8,6 +8,11 @@
     --muted: #888;
     --link: #a9c4ee;
     --accent: #e0a526;
+    --text-soft: #aaa;
+    --heading: #eee;
+    --header-bg: #222;
+    --placeholder-bg: #2b2b2b;
+    --placeholder-line: #3a3a3a;
 }
 
 /* Global page defaults: establishes background, text color, base typography */
@@ -18,7 +23,7 @@ body {
     font-family: Arial, Helvetica, sans-serif;
 }
 
-/* Main content containe: constrains reading width + centers page content */
+/* Main content container: constrains reading width + centers page content */
 main {
     max-width: 800px;
     margin: 20px auto;
@@ -32,7 +37,7 @@ main {
   align-items: center;
   gap: 12px;
   padding: 12px;
-  background: #222;
+  background: var(--header-bg);
   border-bottom: 3px solid var(--accent);
 }
 .brand {
@@ -58,7 +63,7 @@ main {
   border-bottom-color: var(--accent);
 }
 
-/* Library/home page heading: align page title with game count + separate heading from list */
+/* Headings and home page: align page title with game count + separate heading from list */
 .listing-head {
     display: flex;
     justify-content: space-between;
@@ -66,11 +71,11 @@ main {
     border-bottom: 1px solid var(--line);
     padding-bottom: 8px;
 }
-.listing-head h1 {
+.listing-head h1, .review-form h1 {
     font-family: Georgia, "Times New Roman", serif;
     font-size: 1.5rem;
     font-weight: normal;
-    color: #eee;
+    color: var(--heading);
 }
 .count { font-size: 0.8rem; color: var(--muted); }
 
@@ -93,8 +98,8 @@ main {
     flex-shrink: 0;
 }
 .cover.placeholder {
-    background: #2b2b2b;
-    border: 1px solid #3a3a3a;
+    background: var(--placeholder-bg); border: 1px solid var(--placeholder-line);
+    border: 1px solid var(--placeholder-line);
     color: var(--accent);
     font-family: Georgia, serif;
     font-size: 2rem;
@@ -117,16 +122,19 @@ main {
 }
 
 /* Description: clamp listing text to two lines + hide remaining overflow */
-.blurb {
+.blurb, .desc {
     margin: 0;
     font-size: 0.8rem;
-    color: #aaa;
+    color: var(--text-soft);
     line-height: 1.4;
+}
+.blurb {
     display: -webkit-box;
     -webkit-line-clamp: 2; /* Cuts long descriptions off */
     -webkit-box-orient: vertical;
     overflow: hidden;
 }
+.desc { margin-top: 6px }
 
 .empty { color: var(--muted); padding: 16px 0; }
 
@@ -144,7 +152,6 @@ main {
     font: inherit;
 }
 .game-search-form input:focus { outline: none; border-color: var(--accent); }
-.game-search-form button { border: 0; border-radius: 4px; }
 .search-results-head { margin: 0 0 8px; }
 .sr-only {
     position: absolute;
@@ -171,37 +178,30 @@ main {
 }
 .game-summary .cover { width: 80px; height: 113px; }
 .summary-text h2 { margin: 0 0 4px; font-size: 1rem; color: var(--link); }
-.desc { margin: 6px 0 0; font-size: 0.8rem; color: #aaa; line-height: 1.4; }
-
-.review-form h1 {
-    font-family: Georgia, "Times New Roman", serif;
-    font-size: 1.5rem;
-    font-weight: normal;
-}
 
 /* At 640px and above, game summary goes beside the review, and cover adapts to wider layout. Inspired by another project */
 @media (min-width: 640px) {
-  .review-layout { grid-template-columns: 200px 1fr; gap: 28px; }
-  .game-summary { flex-direction: column; }
-  .game-summary .cover { width: 100%; height: auto; aspect-ratio: 55 / 80; }
+    .review-layout { grid-template-columns: 200px 1fr; gap: 28px; }
+    .game-summary { flex-direction: column; }
+    .game-summary .cover { width: 100%; height: auto; aspect-ratio: 55 / 80; }
 }
 
 /* Forms: distinguish validation errors, and separate fields vertically */
 .field { margin-bottom: 14px; }
 .field label { display: block; margin-bottom: 4px; font-size: 0.85rem; color: var(--muted); }
 .field input, .field select, .field textarea {
-  width: 100%;
-  box-sizing: border-box;
-  padding: 10px;
-  background: #1e1e1e;
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 4px;
-  font: inherit;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    background: var(--panel-alt);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    font: inherit;
 }
 .field input:focus, .field select:focus, .field textarea:focus {
-  outline: none;
-  border-color: var(--accent);
+    outline: none;
+    border-color: var(--accent);
 }
 .field-row { display: flex; gap: 12px; }
 .field-row .grow { flex: 1; min-width: 0; }
@@ -211,14 +211,16 @@ main {
 /* Buttons/actions: same base button styling for primary and secondary buttons, primary matches the site's accent color */
 .actions { display: flex; gap: 10px; align-items: center; }
 .btn {
-  display: inline-block;
-  padding: 10px 18px;
-  font-size: 0.9rem;
-  text-decoration: none;
-  cursor: pointer;
-  font: inherit;
+    display: inline-block;
+    padding: 10px 18px;
+    font: inherit;
+    font-size: 0.9rem;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    text-decoration: none;
+    cursor: pointer;
 }
-.btn-primary { background: var(--accent); color: #111; font-weight: bold; }
+.btn-primary { background: var(--accent); color: var(--bg); font-weight: bold; }
 .btn-primary:hover { filter: brightness(1.1); }
 .btn-secondary { background: transparent; color: var(--muted); border-color: var(--line); }
 .btn-secondary:hover { color: #fff; border-color: var(--muted); }

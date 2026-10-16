@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 import certifi # For establishing trusted connection to AtlasDB
+import re
 
 load_dotenv()
 
@@ -13,6 +14,15 @@ app = Flask(__name__)
 
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
+
+def get_game_or_404(game_id):
+    try:
+        game = db.games.find_one({"_id": ObjectId(game_id)})
+    except InvalidId:
+        game = None
+    if game is None:
+        abort(404)
+
 
 def update_average_rating(game_id):
     reviews = list(db.reviews.find({"game_id": game_id}))
@@ -40,10 +50,11 @@ def search():
     query = request.args.get("q", "").strip()
     games = []
     if query:
+        pattern = re.escape(query)
         games = list(db.games.find({
             "$or": [
-                {"title": {"$regex": query, "$options": "i"}},
-                {"genre": {"$regex": query, "$options": "i"}},
+                {"title": {"$regex": pattern, "$options": "i"}},
+                {"genre": {"$regex": pattern, "$options": "i"}},
             ]
         }).sort("title", 1))
     return render_template("search.html", games=games, query=query)
@@ -51,16 +62,10 @@ def search():
 
 @app.route("/game/<game_id>")
 def game_detail(game_id):
-    try:
-        game = db.games.find_one({"_id": ObjectId(game_id)})
-    except InvalidId:
-        game = None
-    if game is None:
-        abort(404)
+    game = get_game_or_404(game_id)
     reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
     return render_template("game_detail.html", game=game, reviews=reviews)
 
-# TODO (assign via Issues at some point): game details, review details, write review, edit review, delete review, search, add game, decide on others
 
 @app.route("/add-game", methods=["GET", "POST"])
 def add_game():
@@ -77,15 +82,11 @@ def add_game():
         return redirect(f"/game/{result.inserted_id}")
     return render_template("add_game.html")
 
+
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
 def write_review(game_id):
     # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
-    try:
-        game = db.games.find_one({"_id": ObjectId(game_id)})
-    except InvalidId:
-        game = None
-    if game is None:
-        abort(404)
+    game = get_game_or_404(game_id)
 
     errors = []
     form = {"reviewer": "", "rating": "", "text": ""}
