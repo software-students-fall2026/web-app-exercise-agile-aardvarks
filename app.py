@@ -6,6 +6,7 @@ from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 import certifi # For establishing trusted connection to AtlasDB
+import re
 
 load_dotenv()
 
@@ -40,10 +41,11 @@ def search():
     query = request.args.get("q", "").strip()
     games = []
     if query:
+        pattern = re.escape(query)
         games = list(db.games.find({
             "$or": [
-                {"title": {"$regex": query, "$options": "i"}},
-                {"genre": {"$regex": query, "$options": "i"}},
+                {"title": {"$regex": pattern, "$options": "i"}},
+                {"genre": {"$regex": pattern, "$options": "i"}},
             ]
         }).sort("title", 1))
     return render_template("search.html", games=games, query=query)
@@ -60,6 +62,7 @@ def game_detail(game_id):
     reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
     return render_template("game_detail.html", game=game, reviews=reviews)
 
+
 @app.route("/add-game", methods=["GET", "POST"])
 def add_game():
     if request.method == "POST":
@@ -74,6 +77,7 @@ def add_game():
         result = db.games.insert_one(game)
         return redirect(f"/game/{result.inserted_id}")
     return render_template("add_game.html")
+
 
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
 def write_review(game_id):
