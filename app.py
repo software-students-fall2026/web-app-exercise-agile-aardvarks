@@ -22,6 +22,7 @@ def get_game_or_404(game_id):
         game = None
     if game is None:
         abort(404)
+    return game
 
 
 def update_average_rating(game_id):
