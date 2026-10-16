@@ -36,7 +36,11 @@
           · {{ review.get("rating", "?") }}/10
         </a>
 
-        <p>{{ review.get("text", "")|truncate(100) }}</p>
+        {% set review_text = review.get("text", "") %}
+        <p class="review-text" data-full-text="{{ review_text }}">{{ review_text }}</p>
+        {% if review_text|length > 180 %}
+        <button type="button" class="review-toggle" aria-expanded="false">See more</button>
+        {% endif %}
       </div>
 
       <div class="review-actions">
@@ -53,6 +57,17 @@
     </li>
     {% endfor %}
   </ul>
+  <script>
+    document.querySelectorAll(".review-toggle").forEach((button) => {
+      button.addEventListener("click", () => {
+        const review = button.closest(".review-content").querySelector(".review-text");
+        const expanded = button.getAttribute("aria-expanded") === "true";
+        review.classList.toggle("is-expanded", !expanded);
+        button.setAttribute("aria-expanded", String(!expanded));
+        button.textContent = expanded ? "See more" : "See less";
+      });
+    });
+  </script>
   {% else %}
   <p class="empty">No reviews yet.</p>
   {% endif %}
