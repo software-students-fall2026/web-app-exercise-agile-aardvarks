@@ -73,8 +73,8 @@ def add_game():
             "description": request.form["description"].strip(),
             "average_rating": None,
         }
-        db.games.insert_one(game)
-        return redirect("/")      # switch to the new game's page once details exists
+        result = db.games.insert_one(game)
+        return redirect(f"/game/{result.inserted_id}")
     return render_template("add_game.html")
 
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
