@@ -22,6 +22,7 @@ def get_game_or_404(game_id):
         game = None
     if game is None:
         abort(404)
+    return game
 
 
 def update_average_rating(game_id):
@@ -122,6 +123,45 @@ def write_review(game_id):
             return redirect(f"/game/{game_id}") # Should work once Sara does details page
 
     return render_template("write_review.html", game=game, errors=errors, form=form)
+
+@app.route("/review/<review_id>/edit", methods=["GET","POST"])
+def edit_review(review_id):
+    try:
+        review = db.reviews.find_one({"_id":ObjectId(review_id)})
+    except InvalidId:
+        abort(404)
+
+    if review is None:
+        abort(404)
+
+    if request.method == "POST":
+        text = request.form.get("text", "").strip()
+        rating_val = request.form.get("rating", "")
+
+        try:
+            rating = int(rating_val)
+        except ValueError:
+            rating = 0
+
+        if not text or rating < 1 or rating > 10:
+            abort(400)
+
+        db.reviews.update_one(
+            {"id": review["_id"]},
+            {"$set": {
+                "text": text,
+                "rating": rating,
+                "updated_at": datetime.now(timezone.utc)
+            }}
+        )
+
+        update_average_rating(review["game_id"])
+
+        return redirect(f"/game/{review['game_id']}")
+
+    return render_template("edit_review.html", review=review)
+
+
 
 
 if __name__ == "__main__":
