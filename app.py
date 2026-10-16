@@ -15,6 +15,15 @@ app = Flask(__name__)
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
 
+def get_game_or_404(game_id):
+    try:
+        game = db.games.find_one({"_id": ObjectId(game_id)})
+    except InvalidId:
+        game = None
+    if game is None:
+        abort(404)
+
+
 def update_average_rating(game_id):
     reviews = list(db.reviews.find({"game_id": game_id}))
     if len(reviews) == 0:
@@ -53,12 +62,7 @@ def search():
 
 @app.route("/game/<game_id>")
 def game_detail(game_id):
-    try:
-        game = db.games.find_one({"_id": ObjectId(game_id)})
-    except InvalidId:
-        game = None
-    if game is None:
-        abort(404)
+    game = get_game_or_404(game_id)
     reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
     return render_template("game_detail.html", game=game, reviews=reviews)
 
@@ -82,12 +86,7 @@ def add_game():
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
 def write_review(game_id):
     # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
-    try:
-        game = db.games.find_one({"_id": ObjectId(game_id)})
-    except InvalidId:
-        game = None
-    if game is None:
-        abort(404)
+    game = get_game_or_404(game_id)
 
     errors = []
     form = {"reviewer": "", "rating": "", "text": ""}
