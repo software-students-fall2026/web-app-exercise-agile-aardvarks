@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% block title %}{{ game.get("title", "Untitled") }} · Game Reviews{% endblock %}
+
 {% block content %}
 <div class="game-detail">
   {% if game.get("image_url") %}

@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+
+{% block title %}Write a Review · Game Reviews{% endblock %}
+
 {% block content %}
     <!-- Review page layout: game summary beside the form used to submit a new review -->
     <div class="review-layout">
@@ -36,7 +39,7 @@
                 <div class="field-row">
                     <div class="field grow">
                         <label for="reviewer">Your name</label>
-                        <input type="text" id="reviewer" name="reviewer" value="{{ form.reviewer }}" required>
+                        <input type="text" id="reviewer" name="reviewer" value="{{ form.reviewer }}" data-max="{{ limits.reviewer }}" required>
                     </div>
 
                     <!-- Rating is a dropdown menu that dynamically updates based on state/user input -->
@@ -54,7 +57,7 @@
                 <!-- Preserves submitted review text in textarea when re-rendering the form, including after any validation errors -->
                 <div class="field">
                     <label for="text">Your review</label>
-                    <textarea id="text" name="text" rows="5" required>{{ form.text }}</textarea>
+                    <textarea id="text" name="text" rows="5" data-max="{{ limits.text }}" required>{{ form.text }}</textarea>
                 </div>
 
                 <!-- Provide primary form submission action + secondary link back to game's page-->
