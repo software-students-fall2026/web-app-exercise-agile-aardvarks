@@ -15,6 +15,24 @@ app = Flask(__name__)
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
 
+LIMITS = {"reviewer": 30, "text": 1000, "title": 80, "genre": 30, "platform": 30, "description": 500}
+YEAR_MIN, YEAR_MAX = 1950, 2030
+
+# Makes these limits available to every template we have
+@app.context_processor
+def inject_limits():
+    return {"limits": LIMITS, "year_min": YEAR_MIN, "year_max": YEAR_MAX}
+
+
+def length_errors(values):
+    # Values: {"reviewer": "...", "text", "..."} -> list of error messages
+    errors = []
+    for name, text in values.items():      # e.g. name="reviewer", text="Sam"
+        if len(text) > LIMITS[name]:       # LIMITS["reviewer"] is 30
+            errors.append(f"{name.capitalize()} must be {LIMITS[name]} characters or fewer (currently {len(text)}).")
+    return errors
+
+
 def get_game_or_404(game_id):
     try:
         game = db.games.find_one({"_id": ObjectId(game_id)})
@@ -70,18 +88,46 @@ def game_detail(game_id):
 
 @app.route("/add-game", methods=["GET", "POST"])
 def add_game():
+    errors = []
+    form = {"title": "", "genre": "", "platform": "", "year": "", "description": ""}
+
     if request.method == "POST":
-        game = {
-            "title": request.form["title"].strip(),
-            "genre": request.form["genre"].strip(),
-            "platform": request.form["platform"].strip(),
-            "year": int(request.form["year"]),
-            "description": request.form["description"].strip(),
-            "average_rating": None,
-        }
-        result = db.games.insert_one(game)
-        return redirect(f"/game/{result.inserted_id}")
-    return render_template("add_game.html")
+        # Copy what the user typed into form, so we can re-show it on errors
+        form["title"] = request.form.get("title", "").strip()
+        form["genre"] = request.form.get("genre", "").strip()
+        form["platform"] = request.form.get("platform", "").strip()
+        form["year"] = request.form.get("year", "").strip()
+        form["description"] = request.form.get("description", "").strip()
+
+        # Check for problems
+        if not all(form.values()):
+            errors.append("Please fill in every field.")
+        errors += length_errors({
+            "title": form["title"],
+            "genre": form["genre"],
+            "platform": form["platform"],
+            "description": form["description"],
+        })
+        try:
+            year = int(form["year"])
+            if not YEAR_MIN <= year <= YEAR_MAX:
+                errors.append(f"Year must be between {YEAR_MIN} and {YEAR_MAX}.")
+        except ValueError:
+            errors.append("Year must be a number.")
+
+        # If no errors, save and go to new game's page
+        if not errors:
+            result = db.games.insert_one({
+                "title": form["title"],
+                "genre": form["genre"],
+                "platform": form["platform"],
+                "year": year,
+                "description": form["description"],
+                "average_rating": None,
+            })
+            return redirect(url_for("game_detail", game_id=result.inserted_id))
+    # GET request, or errors, show the form (with errors and kept values)
+    return render_template("add_game.html", errors=errors, form=form)
 
 
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
@@ -106,6 +152,8 @@ def write_review(game_id):
             errors.append("Please write a review.")
         if not form["rating"]:
             errors.append("Please choose a rating.")
+
+        errors += length_errors({"reviewer": form["reviewer"], "text": form["text"]})
 
         if not errors:
             now = datetime.now(timezone.utc)
@@ -154,6 +202,7 @@ def edit_review(review_id):
         if not form["text"]:
             errors.append("Please write a review.")
 
+        errors += length_errors({"reviewer": form["reviewer"], "text": form["text"]})
 
         try:
             rating = int(form["rating"])

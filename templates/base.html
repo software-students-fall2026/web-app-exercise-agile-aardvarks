@@ -6,6 +6,22 @@
     <title>{% block title %}Game Reviews{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
+
+<script>
+document.querySelectorAll("[data-max]").forEach(el => {
+    const max = Number(el.dataset.max);
+    const counter = document.createElement("div");
+    counter.className = "counter";
+    el.insertAdjacentElement("afterend", counter);
+    const update = () => {
+        counter.textContent = el.value.length + " / " + max;
+        counter.classList.toggle("over", el.value.length > max);
+    };
+    el.addEventListener("input", update);
+    update();
+});
+</script>
+
 <body>
     <header class="site-header">
         <a class="brand" href="{{ url_for('home') }}">Game Reviews</a>

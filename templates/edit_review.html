@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Edit Review{% endblock %}
+{% block title %}Edit Review · Game Reviews{% endblock %}
 
 {% block content %}
 
@@ -23,7 +23,7 @@
                 · {{ game.get("platform", "N/A") }}
                 · {{ game.get("year", "N/A") }}
             </p>
-            <p class="desc">{{ game.get("desription", "") }}</p>
+            <p class="desc">{{ game.get("description", "") }}</p>
         </div>
     </aside>
 
@@ -47,6 +47,7 @@
                         id="reviewer"
                         name="reviewer"
                         value="{{ form.reviewer }}"
+                        data-max="{{ limits.reviewer }}"
                         required>
                 </div>
                 <div class="field rating-field">
@@ -64,7 +65,7 @@
 
             <div class="field">
                 <label for="text">Your review</label>
-                <textarea id="text" name="text" rows="5" required>{{ form.text }}</textarea>
+                <textarea id="text" name="text" rows="5" data-max="{{ limits.text }}" required>{{ form.text }}</textarea>
             </div>
 
             <div class="actions">
