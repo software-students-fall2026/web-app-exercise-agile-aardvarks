@@ -7,30 +7,31 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 
-<script>
-document.querySelectorAll("[data-max]").forEach(el => {
-    const max = Number(el.dataset.max);
-    const counter = document.createElement("div");
-    counter.className = "counter";
-    el.insertAdjacentElement("afterend", counter);
-    const update = () => {
-        counter.textContent = el.value.length + " / " + max;
-        counter.classList.toggle("over", el.value.length > max);
-    };
-    el.addEventListener("input", update);
-    update();
-});
-</script>
-
 <body>
     <header class="site-header">
         <a class="brand" href="{{ url_for('home') }}">Game Reviews</a>
+        {% set route = request.endpoint %}
         <nav class="nav-links">
-            <a href="{{ url_for('home') }}" class="{% if request.path == '/' %}active{% endif %}">Home</a>
-            <a href="{{ url_for('search') }}" class="{% if request.path == '/search' %}active{% endif %}">Search</a>
-            <a href="{{ url_for('add_game') }}" class="{% if request.path == '/add-game' %}active{% endif %}">Add Game</a>
+            <a href="{{ url_for('home') }}" class="{% if route in ('home', 'game_detail', 'write_review', 'edit_review') %}active{% endif %}">Home</a>
+            <a href="{{ url_for('search') }}" class="{% if route in ('search') %}active{% endif %}">Search</a>
+            <a href="{{ url_for('add_game') }}" class="{% if route in ('add_game') %}active{% endif %}">Add Game</a>
         </nav>
     </header>
     <main>{% block content %}{% endblock %}</main>
+
+    <script>
+    document.querySelectorAll("[data-max]").forEach(el => {
+        const max = Number(el.dataset.max);
+        const counter = document.createElement("div");
+        counter.className = "counter";
+        el.insertAdjacentElement("afterend", counter);
+        const update = () => {
+            counter.textContent = el.value.length + " / " + max;
+            counter.classList.toggle("over", el.value.length > max);
+        };
+        el.addEventListener("input", update);
+        update();
+    });
+    </script>
 </body>
 </html>

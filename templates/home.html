@@ -28,18 +28,20 @@
                     </a>
 
                     <div class="details">
-                        <h2><a href="/game/{{ game._id }}">{{ game.get("title", "Untitled") }}</a></h2>
+                        <div class="title-row">
+                            <h2><a href="/game/{{ game._id }}">{{ game.get("title", "Untitled") }}</a></h2>
+                            {% if game.get("average_rating") is not none %}
+                                <span class="rating">★ {{ "%.1f"|format(game.average_rating) }}<small>/10</small></span>
+                            {% else %}
+                                <span class="no-rating">No reviews</span>
+                            {% endif %}
+                        </div>
                         <!-- Displays game information with fallback values for fields that are missing -->
                         <p class="meta">
                             {{ game.get("genre", "Unknown genre") }}
                             · {{ game.get("platform", "N/A") }}
                             · {{ game.get("year", "N/A") }}
                         </p>
-                        {% if game.get("average_rating") is not none %}
-                            <p>Average Rating: {{ "%.1f"|format(game.average_rating) }}/10</p>
-                        {% else %}
-                            <p>No reviews yet</p>
-                        {% endif %}
                         <!-- Only render description when available, and blurb limits to 2 visible lines -->
                         {% if game.get("description") %}
                             <p class="blurb">{{ game.description }}</p>

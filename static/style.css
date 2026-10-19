@@ -311,3 +311,18 @@ main {
 
 /* Crude safety net for long unbroken strings */
 .details, .summary-text, .game-detail, .review-list li { overflow-wrap: anywhere; min-width: 0; }
+
+/* Styles 'average rating' on multiple pages, makes sure elements never overlap */
+.details { min-width: 0; flex: 1; }
+
+.title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 10px;
+}
+.title-row h1, .title-row h2 { min-width: 0; }
+
+.rating { flex: 0 0 auto; font-weight: bold; color: var(--accent); }
+.rating small, .no-rating { font-size: 0.75rem; font-weight: normal; color: var(--muted); }
+.no-rating { flex: 0 0 auto; }
