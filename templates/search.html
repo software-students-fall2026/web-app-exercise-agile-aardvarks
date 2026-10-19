@@ -40,8 +40,14 @@
                                 {% endif %}
                             </a>
                             <div class="details">
-                                <h2><a href="{{ url_for('game_detail', game_id=game._id) }}">{{ game.get("title", "Untitled") }}</a></h2>
-                                <p class="meta">
+                                <div class="title-row">
+                                    <h2><a href="/game/{{ game._id }}">{{ game.get("title", "Untitled") }}</a></h2>
+                                    {% if game.get("average_rating") is not none %}
+                                        <span class="rating">★ {{ "%.1f"|format(game.average_rating) }}<small>/10</small></span>
+                                    {% else %}
+                                        <span class="no-rating">No reviews</span>
+                                    {% endif %}
+                                </div>                                <p class="meta">
                                     {{ game.get("genre", "Unknown genre") }}
                                     · {{ game.get("platform", "N/A") }}
                                     · {{ game.get("year", "N/A") }}
