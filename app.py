@@ -5,6 +5,9 @@ from flask import Flask, render_template, request, redirect, abort, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from werkzeug.security import generate_password_hash
+from pymongo.errors import DuplicateKeyError
+
 import certifi # For establishing trusted connection to AtlasDB
 import re
 
@@ -207,6 +210,51 @@ def delete_review(review_id):
 
     return redirect(url_for("game_detail", game_id=game_id))
 
+
+@app.route("/create-account", methods=["GET", "POST"])
+@app.route("/create-account", methods=["GET", "POST"])
+def create_account():
+    print("Route accessed!", request.method, flush=True)
+
+    if request.method == "POST":
+        print("POST request received!", flush=True)
+
+        username = request.form["username"].strip()
+        password = request.form["password"]
+        confirm_password = request.form["confirm_password"]
+
+        print("Username:", username, flush=True)
+
+        if not username or len(password) < 8:
+            return render_template(
+                "createAccount.html",
+                error="Enter a username and a password of at least 8 characters."
+            ), 400
+            
+
+        if password != confirm_password:
+            return render_template(
+                "createAccount.html",
+                error="Passwords do not match."
+            ), 400
+
+        print("Attempting MongoDB insertion!", flush=True)
+
+        hashed_password = generate_password_hash(password)
+
+        user = {
+            "username": username,
+            "password": hashed_password
+        }
+
+        result = db.users.insert_one(user)
+
+        print("Inserted ID:", result.inserted_id, flush=True)
+        print("Database:", db.name, flush=True)
+
+        return redirect(url_for("home"))
+
+    return render_template("createAccount.html")
 
 
 if __name__ == "__main__":

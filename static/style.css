@@ -305,3 +305,62 @@ main {
     text-decoration: underline;
     text-decoration-color: var(--accent);
 }
+
+
+
+/* Create Account page */
+.create-account-container {
+    max-width: 400px;
+    margin: 60px auto;
+    padding: 24px;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+}
+
+.create-account-container h1 {
+    font-family: Georgia, serif;
+    font-size: 1.5rem;
+    font-weight: normal;
+    color: var(--heading);
+    margin-top: 0;
+    margin-bottom: 24px;
+}
+
+.create-account-container .btn {
+    width: 100%;
+}
+
+.already-have-account {
+    text-align: center;
+    font-size: 0.85rem;
+    color: var(--muted);
+    margin-top: 20px;
+}
+
+.already-have-account a {
+    color: var(--link);
+    text-decoration: none;
+}
+
+.already-have-account a:hover {
+    text-decoration: underline;
+}
+
+.create-account-error {
+    color: #ff8a80;
+    font-size: 0.85rem;
+}
+
+.nav-links a.create-account-btn {
+    background: var(--accent);
+    color: var(--bg);
+    padding: 8px 14px;
+    border-radius: 4px;
+    font-weight: bold;
+    border-bottom: none;
+}
+
+.nav-links a.create-account-btn:hover {
+    filter: brightness(1.1);
+}
