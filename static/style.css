@@ -326,3 +326,13 @@ main {
 .rating { flex: 0 0 auto; font-weight: bold; color: var(--accent); }
 .rating small, .no-rating { font-size: 0.75rem; font-weight: normal; color: var(--muted); }
 .no-rating { flex: 0 0 auto; }
+
+/* Sort form on library page */
+.sort-form select {
+    padding: 5px 5px;
+    background: var(--panel-alt);
+    color: var(--text);
+    border: 1px solid var(--line);
+    font: inherit;
+    font-size: 0.85rem;
+}

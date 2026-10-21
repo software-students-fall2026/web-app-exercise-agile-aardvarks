@@ -60,8 +60,26 @@ def update_average_rating(game_id):
 
 @app.route("/")
 def home():
-    games = list(db.games.find().sort("title", 1))
-    return render_template("home.html", games=games)
+    # Checks if a sorting algorithm has been selected, if it hasn't (or random sort has been inputted) defaults to title ascending (A-Z)
+    sort = request.args.get("sort", "title_asc")
+
+    if sort == "title_desc":
+        games = list(db.games.find().sort("title", -1))
+    elif sort == "rating_desc":
+        games = list(db.games.find().sort("average_rating", -1))
+    elif sort == "rating_asc":
+        games = list(db.games.find().sort("average_rating", 1))
+    else:
+        sort = "title_asc"
+        games = list(db.games.find().sort("title", 1))
+
+    # Games with no reviews always go to the bottom when sorting by rating
+    if sort in ("rating_desc", "rating_asc"):
+        rated = [game for game in games if game.get("average_rating") is not None]
+        unrated = [game for game in games if game.get("average_rating") is None]
+        games = rated + unrated
+    
+    return render_template("home.html", games=games, sort=sort)
 
 
 @app.route("/search")

@@ -10,6 +10,16 @@
             <h1>Game Library</h1>
             <span class="count">{{ games|length }} titles</span>
         </div>
+
+        <form method="get" class="sort-form">
+            <label class="sr-only" for="sort">Sort games</label>
+            <select id="sort" name="sort" onchange="this.form.submit()">
+                <option value="title_asc" {% if sort == "title_asc" %}selected{% endif %}>Title A-Z</option>
+                <option value="title_desc" {% if sort == "title_desc" %}selected{% endif %}>Title Z-A</option>
+                <option value="rating_desc" {% if sort == "rating_desc" %}selected{% endif %}>Rating (high to low)</option>
+                <option value="rating_asc" {% if sort == "rating_asc" %}selected{% endif %}>Rating (low to high)</option>
+            </select>
+        </form>
     
     </div>
     <!-- Renders game list when games are available, else empty-state message -->
