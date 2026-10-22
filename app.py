@@ -275,6 +275,10 @@ def delete_review(review_id):
     return redirect(url_for("game_detail", game_id=game_id))
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
+
 
 if __name__ == "__main__":
     app.run(debug=True)

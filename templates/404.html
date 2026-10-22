@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %}Page Not Found · Game Reviews{% endblock %}
+
+{% block content %}
+    <section class="error-page">
+        <h1>Page not found</h1>
+        <p>We couldn't find what you were looking for. It may have been moved or deleted. Please use the link below to return to the home page!</p>
+        <a class="btn btn-primary" href="{{ url_for('home') }}">Back to library</a>
+    </section>
+{% endblock %}
