@@ -185,6 +185,14 @@ def edit_game(game_id):
     return render_template("add_game.html", errors=errors, form=form, game=game, editing=True)
 
 
+@app.route("/game/<game_id>/delete", methods=["POST"])
+def delete_game(game_id):
+    game = get_game_or_404(game_id)
+    db.reviews.delete_many({"game_id": game["_id"]})   # reviews first, so none are orphaned
+    db.games.delete_one({"_id": game["_id"]})
+    return redirect(url_for("home"))
+
+
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
 def write_review(game_id):
     # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
