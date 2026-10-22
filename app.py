@@ -157,6 +157,34 @@ def add_game():
     return render_template("add_game.html", errors=errors, form=form)
 
 
+@app.route("/game/<game_id>/edit", methods=["GET", "POST"])
+def edit_game(game_id):
+    game = get_game_or_404(game_id)
+    errors = []
+
+    # Start with the saved values so the form is pre-filled
+    form = {
+        "title": game.get("title", ""),
+        "genre": game.get("genre", ""),
+        "platform": game.get("platform", ""),
+        "year": game.get("year", ""),
+        "description": game.get("description", ""),
+    }
+
+    if request.method == "POST":
+        form = read_game_form()
+        errors, year = validate_game(form)
+
+        if not errors:
+            db.games.update_one(
+                {"_id": game["_id"]},
+                {"$set": {**form}}   # form values
+            )
+            return redirect(url_for("game_detail", game_id=game["_id"]))
+
+    return render_template("add_game.html", errors=errors, form=form, game=game, editing=True)
+
+
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
 def write_review(game_id):
     # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
