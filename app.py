@@ -61,6 +61,7 @@ def validate_game(form):
         "platform": form["platform"],
         "description": form["description"],
     })
+    year = None
     try:
         year = int(form["year"])
         if not YEAR_MIN <= year <= YEAR_MAX:
