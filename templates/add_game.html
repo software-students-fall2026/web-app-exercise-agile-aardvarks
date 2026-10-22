@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Add a Game · Game Reviews{% endblock %}
+{% block title %}{{ "Edit Game" if editing else "Add a Game" }} · Game Reviews{% endblock %}
 
 {% block content %}
     <section class="review-form">
-        <h1>Add a Game</h1>
+        <h1>{{ "Edit Game" if editing else "Add a Game" }}</h1>
 
         {% if errors %}
             <ul class="errors">
@@ -40,8 +40,8 @@
             </div>
 
             <div class="actions">
-                <button type="submit" class="btn btn-primary">Add Game</button>
-                <a class="btn btn-secondary" href="{{ url_for('home') }}">Cancel</a>
+                <button type="submit" class="btn btn-primary">{{ "Save Changes" if editing else "Add Game" }}</button>
+                <a class="btn btn-secondary" href="{{ url_for('game_detail', game_id=game._id) if editing else  url_for('home') }}">Cancel</a>
             </div>
         </form>
     </section>

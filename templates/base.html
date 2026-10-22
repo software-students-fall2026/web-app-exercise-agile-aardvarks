@@ -12,7 +12,7 @@
         <a class="brand" href="{{ url_for('home') }}">Game Reviews</a>
         {% set route = request.endpoint or '' %}
         <nav class="nav-links">
-            <a href="{{ url_for('home') }}" class="{% if route in ('home', 'game_detail', 'write_review', 'edit_review') %}active{% endif %}">Home</a>
+            <a href="{{ url_for('home') }}" class="{% if route in ('home', 'game_detail', 'write_review', 'edit_review', 'edit_game') %}active{% endif %}">Home</a>
             <a href="{{ url_for('search') }}" class="{% if route in ('search') %}active{% endif %}">Search</a>
             <a href="{{ url_for('add_game') }}" class="{% if route in ('add_game') %}active{% endif %}">Add Game</a>
         </nav>
