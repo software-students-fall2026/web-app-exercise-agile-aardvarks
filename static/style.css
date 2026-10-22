@@ -336,3 +336,12 @@ main {
     font: inherit;
     font-size: 0.85rem;
 }
+
+/* Error/404 page */
+.error-page { text-align: center; padding: 60px; }
+.error-page h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: normal;
+    color: var(--heading);
+}
+.error-page p { color: var(--muted); }
