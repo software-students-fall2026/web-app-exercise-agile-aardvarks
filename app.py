@@ -15,6 +15,7 @@ app = Flask(__name__)
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
 
+
 LIMITS = {"reviewer": 30, "text": 1000, "title": 80, "genre": 30, "platform": 30, "description": 500}
 YEAR_MIN, YEAR_MAX = 1950, 2030
 
@@ -41,6 +42,32 @@ def get_game_or_404(game_id):
     if game is None:
         abort(404)
     return game
+
+
+def read_game_form():
+    # Reads game form fields from the request, and trims them
+    fields = ("title", "genre", "platform", "year", "description")
+    return {name: request.form.get(name, "").strip() for name in fields}
+
+
+def validate_game(form):
+    # Returns errors and year, used by both add and edit routes
+    errors = []
+    if not all(form.values()):
+        errors.append("Please fill in every field.")
+    errors += length_errors({
+        "title": form["title"],
+        "genre": form["genre"],
+        "platform": form["platform"],
+        "description": form["description"],
+    })
+    try:
+        year = int(form["year"])
+        if not YEAR_MIN <= year <= YEAR_MAX:
+            errors.append(f"Year must be between {YEAR_MIN} and {YEAR_MAX}.")
+    except ValueError:
+        errors.append("Year must be a number.")
+    return errors, year
 
 
 def update_average_rating(game_id):
@@ -110,28 +137,9 @@ def add_game():
     form = {"title": "", "genre": "", "platform": "", "year": "", "description": ""}
 
     if request.method == "POST":
-        # Copy what the user typed into form, so we can re-show it on errors
-        form["title"] = request.form.get("title", "").strip()
-        form["genre"] = request.form.get("genre", "").strip()
-        form["platform"] = request.form.get("platform", "").strip()
-        form["year"] = request.form.get("year", "").strip()
-        form["description"] = request.form.get("description", "").strip()
-
-        # Check for problems
-        if not all(form.values()):
-            errors.append("Please fill in every field.")
-        errors += length_errors({
-            "title": form["title"],
-            "genre": form["genre"],
-            "platform": form["platform"],
-            "description": form["description"],
-        })
-        try:
-            year = int(form["year"])
-            if not YEAR_MIN <= year <= YEAR_MAX:
-                errors.append(f"Year must be between {YEAR_MIN} and {YEAR_MAX}.")
-        except ValueError:
-            errors.append("Year must be a number.")
+        # Copy what the user typed into form, so we can re-show it on errors, and validate inputs
+        form = read_game_form()
+        errors, year = validate_game(form)
 
         # If no errors, save and go to new game's page
         if not errors:
