@@ -31,7 +31,11 @@
                     <a class="cover-link" href="/game/{{ game._id }}">
                         <!-- Use the game's cover image when available, otherwise show a placeholder based on its title -->
                         {% if game.get("image_url") %}
+                            {% if game.image_url.startswith("http://") or game.image_url.startswith("https://") %}
+                                <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+                            {% else %}
                             <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
+                            {% endif %}
                         {% else %}
                             <div class="cover placeholder">{{ game.get("title", "?")[0] }}</div>
                         {% endif %}
