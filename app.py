@@ -5,6 +5,7 @@ from flask import Flask, render_template, request, redirect, abort, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from werkzeug.utils import secure_filename
 import certifi # For establishing trusted connection to AtlasDB
 import re
 
@@ -140,7 +141,43 @@ def add_game():
     if request.method == "POST":
         # Copy what the user typed into form, so we can re-show it on errors, and validate inputs
         form = read_game_form()
+        cover_url = request.form.get("cover_url", "").strip()
+        cover_file = request.files.get("cover_file")
         errors, year = validate_game(form)
+        form["cover_url"] = cover_url
+        image_url = None
+        if cover_file and cover_file.filename:
+            filename = secure_filename(cover_file.filename)
+            if not filename.lower().endswith(
+                (".png", ".jpg", ".jpeg", ".webp")
+            ):
+                errors.append(
+                    "Please upload a PNG, JPG, JPEG, or WEBP image."
+                )
+            else:
+                upload_folder = os.path.join(
+                    app.static_folder,
+                    "uploads"
+                )
+                os.makedirs(
+                    upload_folder,
+                    exist_ok=True
+                )
+                cover_file.save(
+                    os.path.join(
+                        upload_folder,
+                        filename
+                    )
+                )
+                image_url = "uploads/" + filename
+        elif cover_url:
+            if not (
+                cover_url.startswith("http://")
+                or cover_url.startswith("https://")
+            ):
+                errors.append("Please enter a valid image URL.")
+            else:
+                image_url = cover_url
 
         # If no errors, save and go to new game's page
         if not errors:
@@ -151,6 +188,7 @@ def add_game():
                 "year": year,
                 "description": form["description"],
                 "average_rating": None,
+                "image_url": image_url,
             })
             return redirect(url_for("game_detail", game_id=result.inserted_id))
     # GET request, or errors, show the form (with errors and kept values)
@@ -169,11 +207,28 @@ def edit_game(game_id):
         "platform": game.get("platform", ""),
         "year": game.get("year", ""),
         "description": game.get("description", ""),
+        "image_url": (
+            game.get("image_url", "")
+            if game.get("image_url", "").startswith(("http://", "https://"))
+            else ""
+        ),
     }
 
     if request.method == "POST":
         form = read_game_form()
         errors, year = validate_game(form)
+
+        image_url = request.form.get("image_url", "").strip()
+        form["image_url"] = image_url
+        image_url = game.get("image_url")
+
+        if image_url:
+            if not (
+                image_url.startswith("http://")
+                or image_url.startswith("https://")
+            ):
+                errors.append("Please enter a valid image URL.")
+
 
         if not errors:
             db.games.update_one(

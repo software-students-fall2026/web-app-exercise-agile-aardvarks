@@ -5,7 +5,11 @@
 {% block content %}
 <div class="game-detail">
   {% if game.get("image_url") %}
-  <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
+    {% if game.image_url.startswith("http://") or game.image_url.startswith("https://") %}
+      <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+    {% else %}
+      <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
+    {% endif %}
   {% endif %}
 
     <div class="title-row">
