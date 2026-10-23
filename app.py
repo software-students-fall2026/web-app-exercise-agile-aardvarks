@@ -428,7 +428,8 @@ def create_account():
         if errors:
             return render_template(
                 "createAccount.html",
-                error=errors[0]
+                error=errors[0],
+                username=username
             ), 400
 
         hashed_password = generate_password_hash(password)
@@ -443,12 +444,13 @@ def create_account():
         except DuplicateKeyError:
             return render_template(
                 "createAccount.html",
-                error="This username is already taken."
+                error="This username is already taken.",
+                username=username
             ), 409
 
         return redirect(url_for("home"))
 
-    return render_template("createAccount.html")
+    return render_template("createAccount.html", error=errors[0], username=username)
 
 class User(UserMixin):
     def __init__(self, user_document):
@@ -481,7 +483,8 @@ def login():
         if not username or not password:
             return render_template(
                 "login.html",
-                error="Please enter your username and password."
+                error="Please enter your username and password.",
+                username=username
             ), 400
 
         # Validate maximum character lengths
@@ -493,7 +496,8 @@ def login():
         if errors:
             return render_template(
                 "login.html",
-                error=errors[0]
+                error=errors[0],
+                username=username
             ), 400
 
         # Find user in MongoDB
@@ -507,7 +511,8 @@ def login():
         ):
             return render_template(
                 "login.html",
-                error="Invalid username or password."
+                error="Invalid username or password.",
+                username=username
             ), 401
 
         # Convert MongoDB document into Flask-Login user

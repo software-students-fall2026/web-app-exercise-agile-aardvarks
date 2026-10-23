@@ -21,6 +21,7 @@
                 name="username"
                 autocomplete="username"
                 maxlength="{{ limits.username }}"
+                value="{{ request.form.get('username', '') }}"
                 required
             >
         </div>
