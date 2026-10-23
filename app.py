@@ -15,8 +15,13 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
+# Makes it explicit when the secret key isn't configured, so the application can't run without it
+if not app.config["SECRET_KEY"]:
+    raise RuntimeError(
+        "SECRET_KEY must be set in the environment."
+    )
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
