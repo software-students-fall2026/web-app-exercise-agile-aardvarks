@@ -46,6 +46,12 @@
         <span class="review">
           <strong>{{ review.get("reviewer", "Anonymous") }}</strong>
           · {{ review.get("rating", "?") }}/10
+          {% if review.get("updated_at") and review.get("created_at")
+            and review.updated_at != review.created_at %}
+            · {{ review.updated_at.strftime("%b %d, %Y") }} (edited)
+          {% elif review.get("created_at") %}
+            · {{ review.created_at.strftime("%b %d, %Y") }}
+          {% endif %}
         </span>
 
         {% set review_text = review.get("text", "") %}
