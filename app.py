@@ -5,9 +5,13 @@ from flask import Flask, render_template, request, redirect, abort, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash
+from pymongo.errors import DuplicateKeyError
+
 import certifi # For establishing trusted connection to AtlasDB
 import re
+from werkzeug.security import generate_password_hash
+from pymongo.errors import DuplicateKeyError
 
 load_dotenv()
 
@@ -15,9 +19,19 @@ app = Flask(__name__)
 
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
+db.users.create_index("username", unique=True)
 
+LIMITS = {
+    "reviewer": 30,
+    "text": 1000,
+    "title": 80,
+    "genre": 30,
+    "platform": 30,
+    "description": 500,
+    "username": 30,
+    "password": 128
+}
 
-LIMITS = {"reviewer": 30, "text": 1000, "title": 80, "genre": 30, "platform": 30, "description": 500}
 YEAR_MIN, YEAR_MAX = 1950, 2030
 
 # Makes these limits available to every template we have
@@ -374,11 +388,58 @@ def delete_review(review_id):
 
     return redirect(url_for("game_detail", game_id=game_id))
 
+@app.route("/create-account", methods=["GET", "POST"])
+def create_account():
+    errors = []
 
-@app.errorhandler(404)
-def page_not_found(e):
-    return render_template("404.html"), 404
+    if request.method == "POST":
 
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        confirm_password = request.form.get("confirm_password", "")
+
+        # Validate required fields
+        if not username:
+            errors.append("Please enter a username.")
+
+        if len(password) < 8:
+            errors.append("Password must be at least 8 characters.")
+
+        # Validate maximum character lengths
+        errors += length_errors({
+            "username": username,
+            "password": password
+        })
+
+        # Check matching passwords
+        if password != confirm_password:
+            errors.append("Passwords do not match.")
+
+        # Return validation errors
+        if errors:
+            return render_template(
+                "createAccount.html",
+                error=errors[0]
+            ), 400
+
+        hashed_password = generate_password_hash(password)
+
+        user = {
+            "username": username,
+            "password": hashed_password
+        }
+
+        try:
+            db.users.insert_one(user)
+        except DuplicateKeyError:
+            return render_template(
+                "createAccount.html",
+                error="This username is already taken."
+            ), 409
+
+        return redirect(url_for("home"))
+
+    return render_template("createAccount.html")
 
 if __name__ == "__main__":
     app.run(debug=True)

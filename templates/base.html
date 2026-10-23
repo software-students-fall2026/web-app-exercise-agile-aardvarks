@@ -15,6 +15,7 @@
             <a href="{{ url_for('home') }}" class="{% if route in ('home', 'game_detail', 'write_review', 'edit_review', 'edit_game') %}active{% endif %}">Home</a>
             <a href="{{ url_for('search') }}" class="{% if route in ('search') %}active{% endif %}">Search</a>
             <a href="{{ url_for('add_game') }}" class="{% if route in ('add_game') %}active{% endif %}">Add Game</a>
+            <a href="{{ url_for('create_account') }}" class="create-account-btn">Create Account</a>
         </nav>
     </header>
     <main>{% block content %}{% endblock %}</main>
