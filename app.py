@@ -5,17 +5,21 @@ from flask import Flask, render_template, request, redirect, abort, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
-from werkzeug.security import generate_password_hash
+from werkzeug.security import generate_password_hash, check_password_hash
 from pymongo.errors import DuplicateKeyError
 
 import certifi # For establishing trusted connection to AtlasDB
 import re
-from werkzeug.security import generate_password_hash
-from pymongo.errors import DuplicateKeyError
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
 load_dotenv()
 
 app = Flask(__name__)
+app.secret_key = os.getenv("SECRET")
+
+
+login_manager = LoginManager(app)
+login_manager.login_view = "login"
 
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
@@ -440,6 +444,82 @@ def create_account():
         return redirect(url_for("home"))
 
     return render_template("createAccount.html")
+
+class User(UserMixin):
+    def __init__(self, user_document):
+        self.id = str(user_document["_id"])
+        self.username = user_document["username"]
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        user_document = db.users.find_one({
+            "_id": ObjectId(user_id)
+        })
+    except (InvalidId, TypeError):
+        return None
+
+    if user_document is None:
+        return None
+
+    return User(user_document)
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+
+    if request.method == "POST":
+
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+
+        # Validate required fields
+        if not username or not password:
+            return render_template(
+                "login.html",
+                error="Please enter your username and password."
+            ), 400
+
+        # Validate maximum character lengths
+        errors = length_errors({
+            "username": username,
+            "password": password
+        })
+
+        if errors:
+            return render_template(
+                "login.html",
+                error=errors[0]
+            ), 400
+
+        # Find user in MongoDB
+        user_document = db.users.find_one({
+            "username": username
+        })
+
+        # Verify credentials
+        if user_document is None or not check_password_hash(
+            user_document["password"], password
+        ):
+            return render_template(
+                "login.html",
+                error="Invalid username or password."
+            ), 401
+
+        # Convert MongoDB document into Flask-Login user
+        user = User(user_document)
+
+        # Log in the user
+        login_user(user)
+
+        return redirect(url_for("home"))
+
+    return render_template("login.html")
+
+@app.route("/logout", methods=["POST"])
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for("home"))
 
 if __name__ == "__main__":
     app.run(debug=True)

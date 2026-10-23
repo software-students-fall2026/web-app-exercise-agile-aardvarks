@@ -49,6 +49,7 @@ main {
 .nav-links {
   display: flex;
   gap: 16px;
+  align-items: center;
 }
 .nav-links a {
   color: var(--muted);
@@ -401,4 +402,62 @@ main {
 
 .nav-links a.create-account-btn:hover {
     filter: brightness(1.1);
+}
+
+/* Subtle login button */
+.nav-links .login-btn {
+    color: var(--muted);
+    background: transparent;
+    border: 1px solid var(--muted);
+    border-radius: 4px;
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.nav-links .login-btn:hover {
+    color: var(--text);
+    border-color: var(--muted);
+    background: var(--panel-alt);
+}
+
+/* Logged-in user */
+
+.nav-username {
+    display: flex;
+    align-items: center;
+    color: var(--heading);
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-left: 1px solid var(--line);
+    padding: 8px 0 8px 20px;
+    margin-left: 8px;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Logout form */
+
+.logout-form {
+    margin: 0;
+}
+
+.logout-btn {
+    background: transparent;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    color: var(--muted);
+    padding: 6px 12px;
+    font: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.logout-btn:hover {
+    color: var(--text);
+    border-color: var(--muted);
+    background: var(--panel-alt);
 }
