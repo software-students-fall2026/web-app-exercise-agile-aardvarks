@@ -5,6 +5,9 @@ from flask import Flask, render_template, request, redirect, abort, url_for
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
+from werkzeug.security import generate_password_hash
+from pymongo.errors import DuplicateKeyError
+
 import certifi # For establishing trusted connection to AtlasDB
 import re
 from werkzeug.security import generate_password_hash
