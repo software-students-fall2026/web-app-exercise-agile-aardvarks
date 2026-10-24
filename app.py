@@ -118,6 +118,14 @@ def owns_review(review):
     )
 
 
+def owns_game(game):
+    return (
+        game is not None
+        and game.get("added_by") is not None
+        and str(game["added_by"]) == str(current_user.get_id())
+    )
+
+
 @app.route("/")
 def home():
     # Checks if a sorting algorithm has been selected, if it hasn't (or random sort has been inputted) defaults to title ascending (A-Z)
@@ -165,6 +173,7 @@ def game_detail(game_id):
 
 
 @app.route("/add-game", methods=["GET", "POST"])
+@login_required
 def add_game():
     errors = []
     form = {"title": "", "genre": "", "platform": "", "year": "", "description": ""}
@@ -219,6 +228,8 @@ def add_game():
                 "description": form["description"],
                 "average_rating": None,
                 "image_url": image_url,
+                "added_by": ObjectId(current_user.get_id()),
+                "added_by_username": current_user.username,
             })
             return redirect(url_for("game_detail", game_id=result.inserted_id))
     # GET request, or errors, show the form (with errors and kept values)
@@ -226,8 +237,13 @@ def add_game():
 
 
 @app.route("/game/<game_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_game(game_id):
     game = get_game_or_404(game_id)
+
+    if not owns_game(game):
+        abort(403)
+
     errors = []
 
     # Start with the saved values so the form is pre-filled
@@ -275,8 +291,13 @@ def edit_game(game_id):
 
 
 @app.route("/game/<game_id>/delete", methods=["POST"])
+@login_required
 def delete_game(game_id):
     game = get_game_or_404(game_id)
+
+    if not owns_game(game):
+        abort(403)
+        
     db.reviews.delete_many({"game_id": game["_id"]})   # reviews first, so none are orphaned
     db.games.delete_one({"_id": game["_id"]})
     return redirect(url_for("home"))
