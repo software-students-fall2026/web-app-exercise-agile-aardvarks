@@ -42,8 +42,7 @@
                 <!-- Groups reviewer id + rating together. Field-row controls horizontal alignment-->
                 <div class="field-row">
                     <div class="field grow">
-                        <label for="reviewer">Your name</label>
-                        <input type="text" id="reviewer" name="reviewer" value="{{ form.reviewer }}" data-max="{{ limits.reviewer }}" required>
+                        <p>Posting as <strong>{{ current_user.username }}</strong></p>
                     </div>
 
                     <!-- Rating is a dropdown menu that dynamically updates based on state/user input -->
