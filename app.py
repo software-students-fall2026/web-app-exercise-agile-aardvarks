@@ -28,7 +28,7 @@ login_manager.login_view = "login"
 
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
-db.users.create_index("username", unique=True)
+db.users.create_index("username_normalized", unique=True)
 
 LIMITS = {
     "reviewer": 30,
@@ -403,12 +403,14 @@ def create_account():
 
     if request.method == "POST":
 
-        username = request.form.get("username", "").strip()
+        entered_username = request.form.get("username", "").strip()
+        username_normalized = entered_username.lower()
+
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
 
         # Validate required fields
-        if not username:
+        if not entered_username:
             errors.append("Please enter a username.")
 
         if len(password) < 8:
@@ -416,7 +418,7 @@ def create_account():
 
         # Validate maximum character lengths
         errors += length_errors({
-            "username": username,
+            "username": entered_username,
             "password": password
         })
 
@@ -429,13 +431,14 @@ def create_account():
             return render_template(
                 "createAccount.html",
                 error=errors[0],
-                username=username
+                username=entered_username
             ), 400
 
         hashed_password = generate_password_hash(password)
 
         user = {
-            "username": username,
+            "username": entered_username,
+            "username_normalized": username_normalized,
             "password": hashed_password
         }
 
@@ -445,12 +448,12 @@ def create_account():
             return render_template(
                 "createAccount.html",
                 error="This username is already taken.",
-                username=username
+                username=entered_username
             ), 409
 
         return redirect(url_for("home"))
 
-    return render_template("createAccount.html", error=errors[0], username=username)
+    return render_template("createAccount.html", error=None, username="")
 
 class User(UserMixin):
     def __init__(self, user_document):
@@ -476,20 +479,21 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form.get("username", "").strip()
+        entered_username = request.form.get("username", "").strip()
+        username_normalized = entered_username.lower()
         password = request.form.get("password", "")
 
         # Validate required fields
-        if not username or not password:
+        if not entered_username or not password:
             return render_template(
                 "login.html",
                 error="Please enter your username and password.",
-                username=username
+                username=entered_username
             ), 400
 
         # Validate maximum character lengths
         errors = length_errors({
-            "username": username,
+            "username": entered_username,
             "password": password
         })
 
@@ -497,12 +501,12 @@ def login():
             return render_template(
                 "login.html",
                 error=errors[0],
-                username=username
+                username=entered_username
             ), 400
 
         # Find user in MongoDB
         user_document = db.users.find_one({
-            "username": username
+            "username_normalized": username_normalized
         })
 
         # Verify credentials
@@ -512,7 +516,7 @@ def login():
             return render_template(
                 "login.html",
                 error="Invalid username or password.",
-                username=username
+                username=entered_username
             ), 401
 
         # Convert MongoDB document into Flask-Login user
