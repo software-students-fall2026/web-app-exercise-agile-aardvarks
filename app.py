@@ -32,7 +32,6 @@ db = client[os.getenv("MONGO_DBNAME")]
 db.users.create_index("username_normalized", unique=True)
 
 LIMITS = {
-    "reviewer": 30,
     "text": 1000,
     "title": 80,
     "genre": 30,
@@ -53,8 +52,8 @@ def inject_limits():
 def length_errors(values):
     # Values: {"reviewer": "...", "text", "..."} -> list of error messages
     errors = []
-    for name, text in values.items():      # e.g. name="reviewer", text="Sam"
-        if len(text) > LIMITS[name]:       # LIMITS["reviewer"] is 30
+    for name, text in values.items():      # e.g. name="title", text="Celeste"
+        if len(text) > LIMITS[name]:       # LIMITS["text"] is 1000
             errors.append(f"{name.capitalize()} must be {LIMITS[name]} characters or fewer (currently {len(text)}).")
     return errors
 
@@ -108,6 +107,14 @@ def update_average_rating(game_id):
     db.games.update_one(
         {"_id": game_id}, 
         {"$set": {"average_rating": average}}
+    )
+
+
+def owns_review(review):
+    return (
+        review is not None
+        and review.get("user_id") is not None
+        and str(review["user_id"]) == str(current_user.get_id())
     )
 
 
@@ -276,35 +283,34 @@ def delete_game(game_id):
 
 
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
+@login_required
 def write_review(game_id):
     # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
     game = get_game_or_404(game_id)
 
     errors = []
-    form = {"reviewer": "", "rating": "", "text": ""}
+    form = {"rating": "", "text": ""}
 
     if request.method == "POST":
-        form["reviewer"] = request.form.get("reviewer", "").strip()
         form["rating"] = request.form.get("rating", "").strip()
         form["text"] = request.form.get("text", "").strip()
 
         rating = int(form["rating"])
 
         # Validation
-        if not form["reviewer"]:
-            errors.append("Please enter your name.")
         if not form["text"]:
             errors.append("Please write a review.")
         if not form["rating"]:
             errors.append("Please choose a rating.")
 
-        errors += length_errors({"reviewer": form["reviewer"], "text": form["text"]})
+        errors += length_errors({"text": form["text"]})
 
         if not errors:
             now = datetime.now(timezone.utc)
             db.reviews.insert_one({
                 "game_id": game["_id"], # ObjectId, not the string from the URL
-                "reviewer": form["reviewer"],
+                "user_id": ObjectId(current_user.id),
+                "reviewer": current_user.username,
                 "rating": rating,
                 "text": form["text"],
                 "likes": 0,
@@ -318,6 +324,7 @@ def write_review(game_id):
     return render_template("write_review.html", game=game, errors=errors, form=form)
 
 @app.route("/review/<review_id>/edit", methods=["GET","POST"])
+@login_required
 def edit_review(review_id):
     try:
         review = db.reviews.find_one({"_id":ObjectId(review_id)})
@@ -327,27 +334,26 @@ def edit_review(review_id):
     if review is None:
         abort(404)
 
+    if not owns_review(review):
+        abort(403)
+
     game = get_game_or_404(str(review["game_id"]))
 
     errors = []
 
     form = {
-        "reviewer": review["reviewer"],
         "rating": str(review["rating"]),
         "text": review["text"]
     }
 
     if request.method == "POST":
-        form["reviewer"] = request.form.get("reviewer", "").strip()
         form["rating"] = request.form.get("rating", "").strip()
         form["text"] = request.form.get("text", "").strip()
 
-        if not form["reviewer"]:
-            errors.append("Please enter your name.")
         if not form["text"]:
             errors.append("Please write a review.")
 
-        errors += length_errors({"reviewer": form["reviewer"], "text": form["text"]})
+        errors += length_errors({"text": form["text"]})
 
         try:
             rating = int(form["rating"])
@@ -360,7 +366,6 @@ def edit_review(review_id):
             db.reviews.update_one(
                 {"_id": review["_id"]},
                 {"$set": {
-                    "reviewer": form["reviewer"],
                     "rating": rating,
                     "text": form["text"],
                     "updated_at": datetime.now(timezone.utc)
@@ -392,6 +397,9 @@ def delete_review(review_id):
 
     if review is None:
         abort(404)
+
+    if not owns_review(review):
+        abort(403)
 
     game_id = review["game_id"]
 
