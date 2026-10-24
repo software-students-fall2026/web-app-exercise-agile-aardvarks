@@ -242,16 +242,20 @@ def edit_game(game_id):
         errors, year = validate_game(form)
 
         image_url = request.form.get("image_url", "").strip()
+
+        # If a new file was uploaded, save it
+        cover_file = request.files.get("cover_file")
+
+        if cover_file and cover_file.filename:
+            filename = secure_filename(cover_file.filename)
+            cover_file.save(os.path.join(app.static_folder, "uploads", filename))
+            image_url = "uploads/" + filename
+
+        # If no URL or file was provided, keep the existing cover
+        if not image_url:
+            image_url = game.get("image_url", "")
+
         form["image_url"] = image_url
-        image_url = game.get("image_url")
-
-        if image_url:
-            if not (
-                image_url.startswith("http://")
-                or image_url.startswith("https://")
-            ):
-                errors.append("Please enter a valid image URL.")
-
 
         if not errors:
             db.games.update_one(
