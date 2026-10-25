@@ -4,34 +4,48 @@
 
 {% block content %}
 <div class="game-detail">
-  {% if game.get("image_url") %}
-    {% if game.image_url.startswith("http://") or game.image_url.startswith("https://") %}
-      <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
-    {% else %}
-      <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
-    {% endif %}
-  {% endif %}
-
-    <div class="title-row">
-        <h1>{{ game.get("title", "Untitled") }}</h1>
-        {% if game.get("average_rating") is not none %}
-            <span class="rating">★ {{ "%.1f"|format(game.average_rating) }}<small>/10</small></span>
-        {% else %}
-            <span class="no-rating">No reviews</span>
+    <div class="game-detail-header">
+        {% if game.get("image_url") %}
+            {% if game.image_url.startswith("http://") or game.image_url.startswith("https://") %}
+                <img 
+                    class="cover detail-cover" 
+                    src="{{ game.image_url }}" 
+                    alt="{{ game.get('title', '') }} cover"
+                >
+            {% else %}
+                <img 
+                    class="cover detail-cover" 
+                    src="{{ url_for('static', filename=game.image_url) }}" 
+                    alt="{{ game.get('title', '') }} cover"
+                >
+            {% endif %}
         {% endif %}
-    </div>
-  <p class="meta">
-    {{ game.get("genre", "Unknown genre") }}
-    · {{ game.get("platform", "N/A") }}
-    · {{ game.get("year", "N/A") }}
-  </p>
-  {% if game.get("added_by_username") %}
-    <p class="meta">Added by {{ game.added_by_username }}</p>
-  {% endif %}
 
-  {% if game.get("description") %}
-  <p>{{ game.description }}</p>
-  {% endif %}
+        <div class="game-detail-info">
+            <div class="title-row">
+                <h1>{{ game.get("title", "Untitled") }}</h1>
+                {% if game.get("average_rating") is not none %}
+                    <span class="rating">★ {{ "%.1f"|format(game.average_rating) }}<small>/10</small></span>
+                {% else %}
+                    <span class="no-rating">No reviews</span>
+                {% endif %}
+            </div>
+
+            <p class="meta">
+                {{ game.get("genre", "Unknown genre") }}
+                · {{ game.get("platform", "N/A") }}
+                · {{ game.get("year", "N/A") }}
+            </p>
+
+            {% if game.get("added_by_username") %}
+                <p class="meta">Added by {{ game.added_by_username }}</p>
+            {% endif %}
+
+            {% if game.get("description") %}
+                <p class="detail-description">{{ game.description }}</p>
+            {% endif %}
+        </div>
+  </div>
 
     {% if current_user.is_authenticated 
         and (game.get("added_by") | string) == current_user.get_id() %}
@@ -44,8 +58,10 @@
         </div>
     {% endif %}
 
-  <h2>Reviews</h2>
-  <a href="/game/{{ game._id }}/review" id="write-btn">Write a review</a>
+    <div class="reviews-header">
+        <h2>Reviews</h2>
+        <a href="/game/{{ game._id }}/review" class="btn btn-primary">Write a review</a>
+    </div>
 
   {% if reviews %}
   <ul class="review-list">
@@ -103,6 +119,6 @@
   <p class="empty">No reviews yet.</p>
   {% endif %}
 
-  <a href="/">← Back to library</a>
+  <a href="/" class="btn btn-secondary">← Back to library</a>
 </div>
 {% endblock %}

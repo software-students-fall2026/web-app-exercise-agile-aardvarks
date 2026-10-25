@@ -151,6 +151,60 @@ main {
 
 .empty { color: var(--muted); padding: 16px 0; }
 
+/* Game details header */
+.game-detail-header {
+    display: flex;
+    gap: 20px;
+}
+.game-detail-header .detail-cover {
+    width: 140px;
+    height: 195px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.game-detail-info h1 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: var(--heading);
+}
+.detail-description {
+    margin-top: 16px;
+    line-height: 1.5;
+    color: var(--text-soft);
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 30px 0 12px;
+}
+.reviews-header h2 {
+    margin: 0;
+}
+.reviews-header .btn {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+    .game-detail-header {
+        gap: 12px;
+    }
+
+    .game-detail-header .detail-cover {
+        width: 105px;
+        height: 150px;
+    }
+
+    .game-detail-info h1 {
+        font-size: 1.5rem;
+    }
+}
+
 /* Search page: reuse the shared game list and keep the form consistent with other controls. */
 .search-intro { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
 .game-search-form { display: flex; gap: 8px; margin: 18px 0; }
@@ -304,18 +358,6 @@ main {
 
 .review-actions .btn {
     justify-content: center;
-}
-
-#write-btn {
-    color: var(--text);
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
-}
-
-#write-btn:hover{
-    color: var(--text);
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
 }
 
 .counter { font-size: 0.75rem; color: var(--muted); text-align: right; margin-top: 4px; }
