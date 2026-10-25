@@ -1,29 +1,63 @@
 {% extends "base.html" %}
 
-{% block title %}Search Games · Game Reviews{% endblock %}
+{% block title %}Search {{ 'My Reviews' if is_review_search else 'Games'}} · Game Reviews{% endblock %}
 
 {% block content %}
     <section class="search-page">
         <div class="listing-head">
             <div>
-                <h1>Search Games</h1>
-                <p class="search-intro">Find games by title or genre.</p>
+                <h1>Search {{ 'My Reviews' if is_review_search else 'Games' }}</h1>
+                <p class="search-intro">{{ 'Find your reviews.' if is_review_search else 'Find games by title or genre.' }}</p>
             </div>
         </div>
 
         <form action="{{ url_for('search') }}" method="get" class="game-search-form">
-            <label class="sr-only" for="game-query">Search by title or genre</label>
+            <label class="sr-only" for="game-query">{{ 'Search your reviews' if is_review_search else 'Search by title or genre' }}</label>
             <input
                 id="game-query"
                 type="search"
                 name="q"
-                placeholder="Search by title or genre..."
+                placeholder="{{ 'Search your reviews...' if is_review_search else 'Search by title or genre...' }}"
                 value="{{ query }}"
             >
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
 
-        {% if query %}
+        {% if is_review_search %}
+            <div class="search-results-head">
+                <span class="count"> {{ reviews|length }} {{ 'review' if reviews|length == 1 else 'reviews' }}</span>
+            </div>
+
+            {% if reviews %}
+                <ul class="game-list">
+                    {% for review in reviews %}
+                        <li class="game-row">
+                            <div class="details">
+                                <div class="title-row">
+                                    <h2> {{ review.get('game_title', 'Unknown Game') }}</h2>
+                                
+                                    {% if review.get('rating') is not none %}
+                                        <span class="rating"> * {{review.get('rating') }}/10</span>
+                                    {% endif %}
+                                </div>
+
+                                {% if review.get('review_text') %}
+                                    <p class="blurb">{{ review.get('review_text') }}</p>
+                                {% elif review.get('text') %}
+                                    <p class="blurb">{{ review.get('text') }}</p>
+                                {% elif review.get('content') %}
+                                    <p class="blurb">{{ review.get('content') }}</p>
+                                {% endif %}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}   
+                <p class="empty">You haven't written any reviews yet.</p>
+            {% endif %}
+
+
+        {% elif query %}
             <div class="search-results-head">
                 <span class="count">{{ games|length }} {{ 'title' if games|length == 1 else 'titles' }}</span>
             </div>
@@ -41,13 +75,14 @@
                             </a>
                             <div class="details">
                                 <div class="title-row">
-                                    <h2><a href="/game/{{ game._id }}">{{ game.get("title", "Untitled") }}</a></h2>
+                                    <h2><a href="{{ url_for('game_detail', game_id=game._id) }}">{{ game.get("title", "Untitled") }}</a></h2>
                                     {% if game.get("average_rating") is not none %}
                                         <span class="rating">★ {{ "%.1f"|format(game.average_rating) }}<small>/10</small></span>
                                     {% else %}
                                         <span class="no-rating">No reviews</span>
                                     {% endif %}
-                                </div>                                <p class="meta">
+                                </div>                                
+                                <p class="meta">
                                     {{ game.get("genre", "Unknown genre") }}
                                     · {{ game.get("platform", "N/A") }}
                                     · {{ game.get("year", "N/A") }}

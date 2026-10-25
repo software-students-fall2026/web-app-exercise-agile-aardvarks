@@ -181,7 +181,21 @@ def game_detail(game_id):
 def search():
     query = request.args.get("q", "").strip()
     games = []
-    if query:
+    reviews = []
+    is_review_search = query.lower() == "my reviews"
+
+    if is_review_search:
+        reviews = list(db.reviews.find ({
+            "user_id": ObjectId(current_user.id)
+        }))
+
+        for review in reviews:
+            game = db.games.find_one({"_id": review["game_id"]})
+
+            if game:
+                review["game_title"] = game["title"]
+
+    elif query:
         pattern = re.escape(query)
         games = list(db.games.find({
             "$or": [
@@ -189,7 +203,15 @@ def search():
                 {"genre": {"$regex": pattern, "$options": "i"}},
             ]
         }).sort("title", 1))
-    return render_template("search.html", games=games, query=query)
+
+    return render_template(
+        "search.html", 
+        games=games,
+        reviews=reviews, 
+        query=query, 
+        is_review_search=is_review_search
+        )
+
 
 @app.route("/add-game", methods=["GET", "POST"])
 @login_required
