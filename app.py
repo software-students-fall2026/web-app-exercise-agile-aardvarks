@@ -169,7 +169,30 @@ def search():
 def game_detail(game_id):
     game = get_game_or_404(game_id)
     reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
-    return render_template("game_detail.html", game=game, reviews=reviews)
+
+    # Count how many reviews gave each rating (1-10)
+    rating_counts = {i: 0 for i in range(1, 11)}
+
+    for review in reviews:
+        rating = review.get("rating")
+
+        if rating in rating_counts:
+            rating_counts[rating] += 1
+
+    # Total number of reviews
+    total_reviews = len(reviews)
+
+    # Highest number of reviews for any individual rating
+    max_rating_count = max(rating_counts.values(), default=0)
+
+    return render_template(
+        "game_detail.html",
+        game=game,
+        reviews=reviews,
+        rating_counts=rating_counts,
+        total_reviews=total_reviews,
+        max_rating_count=max_rating_count
+    )
 
 
 @app.route("/add-game", methods=["GET", "POST"])

@@ -482,3 +482,128 @@ main {
 .flash-info {
     border-left: 4px solid var(--accent);
 }
+
+.rating-distribution {
+    display: flex;
+    align-items: flex-end;
+    gap: 30px;
+    margin: 25px 0;
+    width: 100%;
+    max-width: 750px;
+}
+
+/* Total reviews */
+.rating-total {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+.rating-total strong {
+    font-size: 32px;
+    font-weight: 700;
+}
+
+.rating-total span {
+    color: #888;
+    font-size: 14px;
+}
+
+/* Histogram */
+.rating-histogram {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Each rating column */
+.rating-bucket {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+    padding: 0;
+    background: none;
+    border: none;
+    color: inherit;
+    font: inherit;
+    cursor: help;
+}
+
+/* Space reserved for each bar */
+.rating-bar-space {
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    height: 90px;
+}
+
+/* Blue bar */
+.rating-bar {
+    display: block;
+    width: 100%;
+    min-height: 4px;
+    background: #1565c0;
+    border-radius: 5px 5px 2px 2px;
+    transition: background 0.2s;
+}
+
+/* Rating number below bar */
+.rating-label {
+    margin-top: 8px;
+    font-size: 14px;
+}
+
+/* Hover effect */
+.rating-bucket:hover .rating-bar,
+.rating-bucket:focus-visible .rating-bar {
+    background: #42a5f5;
+}
+
+/* Tooltip */
+.rating-tooltip {
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    white-space: nowrap;
+
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    z-index: 10;
+}
+
+.rating-bucket:hover .rating-tooltip,
+.rating-bucket:focus-visible .rating-tooltip {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Smaller screens */
+@media (max-width: 500px) {
+    .rating-distribution {
+        gap: 15px;
+    }
+
+    .rating-histogram {
+        gap: 4px;
+    }
+
+    .rating-total strong {
+        font-size: 24px;
+    }
+
+    .rating-bar-space {
+        height: 70px;
+    }
+}
