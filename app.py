@@ -191,51 +191,6 @@ def search():
         }).sort("title", 1))
     return render_template("search.html", games=games, query=query)
 
-
-@app.route("/game/<game_id>/review", methods=["GET", "POST"])
-@login_required
-def write_review(game_id):
-    # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
-    game = get_game_or_404(game_id)
-
-    errors = []
-    form = {"rating": "", "text": ""}
-
-    if request.method == "POST":
-        form["rating"] = request.form.get("rating", "").strip()
-        form["text"] = request.form.get("text", "").strip()
-
-        rating = int(form["rating"])
-
-        # Validation
-        if not form["text"]:
-            errors.append("Please write a review.")
-        if not form["rating"]:
-            errors.append("Please choose a rating.")
-
-        errors += length_errors({"text": form["text"]})
-
-        if not errors:
-            now = datetime.now(timezone.utc)
-            db.reviews.insert_one({
-                "game_id": game["_id"], # ObjectId, not the string from the URL
-                "user_id": ObjectId(current_user.id),
-                "reviewer": current_user.username,
-                "rating": rating,
-                "text": form["text"],
-                "likes": 0,
-                "dislikes": 0,
-                "created_at": now,
-                "updated_at": now,
-            })
-            update_average_rating(game["_id"])
-            flash("Review posted successfully.", "success")
-            return redirect(f"/game/{game_id}")
-
-    return render_template("write_review.html", game=game, errors=errors, form=form)
-
-
-
 @app.route("/add-game", methods=["GET", "POST"])
 @login_required
 def add_game():
@@ -299,6 +254,48 @@ def add_game():
             return redirect(url_for("game_detail", game_id=result.inserted_id))
     # GET request, or errors, show the form (with errors and kept values)
     return render_template("add_game.html", errors=errors, form=form)
+
+@app.route("/game/<game_id>/review", methods=["GET", "POST"])
+@login_required
+def write_review(game_id):
+    # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
+    game = get_game_or_404(game_id)
+
+    errors = []
+    form = {"rating": "", "text": ""}
+
+    if request.method == "POST":
+        form["rating"] = request.form.get("rating", "").strip()
+        form["text"] = request.form.get("text", "").strip()
+
+        rating = int(form["rating"])
+
+        # Validation
+        if not form["text"]:
+            errors.append("Please write a review.")
+        if not form["rating"]:
+            errors.append("Please choose a rating.")
+
+        errors += length_errors({"text": form["text"]})
+
+        if not errors:
+            now = datetime.now(timezone.utc)
+            db.reviews.insert_one({
+                "game_id": game["_id"], # ObjectId, not the string from the URL
+                "user_id": ObjectId(current_user.id),
+                "reviewer": current_user.username,
+                "rating": rating,
+                "text": form["text"],
+                "likes": 0,
+                "dislikes": 0,
+                "created_at": now,
+                "updated_at": now,
+            })
+            update_average_rating(game["_id"])
+            flash("Review posted successfully.", "success")
+            return redirect(f"/game/{game_id}")
+
+    return render_template("write_review.html", game=game, errors=errors, form=form)
 
 
 @app.route("/game/<game_id>/edit", methods=["GET", "POST"])
