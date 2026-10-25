@@ -126,6 +126,11 @@ def owns_game(game):
     )
 
 
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template("404.html"), 404
+
+
 @app.route("/")
 def home():
     # Checks if a sorting algorithm has been selected, if it hasn't (or random sort has been inputted) defaults to title ascending (A-Z)
@@ -182,7 +187,7 @@ def search():
     query = request.args.get("q", "").strip()
     games = []
     reviews = []
-    is_review_search = query.lower() == "my reviews"
+    is_review_search = query.lower() == "my reviews" and current_user.is_authenticated
 
     if is_review_search:
         reviews = list(db.reviews.find ({
@@ -367,7 +372,7 @@ def edit_game(game_id):
         if not errors:
             db.games.update_one(
                 {"_id": game["_id"]},
-                {"$set": {**form}}   # form values
+                {"$set": {**form, "year": year}}   # form values
             )
             flash("Game edited successfully.", "success")
             return redirect(url_for("game_detail", game_id=game["_id"]))
@@ -455,6 +460,7 @@ def edit_review(review_id):
 
 
 @app.route("/review/<review_id>/delete", methods=["POST"])
+@login_required
 def delete_review(review_id):
     try:
         review = db.reviews.find_one({"_id": ObjectId(review_id)})
