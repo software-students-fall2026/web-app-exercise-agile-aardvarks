@@ -30,38 +30,50 @@ main {
     padding: 0 12px;
 }
 
-/* Header: align brand + navigation and highlight active navigation links */
+/* Header: two rows, top for brand + account, bottom for page navigation */
 .site-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: var(--header-bg);
-  border-bottom: 3px solid var(--accent);
+    background: var(--header-bg);
+    border-bottom: 3px solid var(--accent);
+}
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
 }
 .brand {
-  color: #fff;
-  text-decoration: none;
-  font-weight: bold;
-  letter-spacing: 0.5px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: bold;
+    letter-spacing: 0.5px;
 }
+.account-links {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+/* Bottom row: page links, separated from top row by accented border line */
 .nav-links {
-  display: flex;
-  gap: 16px;
-  align-items: center;
+    display: flex;
+    gap: 16px;
+    padding: 12px;
+    border-top: 2px solid var(--accent);
+    background: var(--panel);
+    justify-content: space-evenly;
 }
 .nav-links a {
-  color: var(--muted);
-  text-decoration: none;
-  font-size: 0.9rem;
-  padding: 6px 2px;
-  border-bottom: 2px solid transparent;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    padding: 6px 2px;
+    border-bottom: 2px solid transparent;
 }
 .nav-links a:hover { color: #fff; }
 .nav-links a.active {
-  color: var(--text);
-  border-bottom-color: var(--accent);
+    color: var(--text);
+    border-bottom-color: var(--accent);
 }
 
 /* Headings and home page: align page title with game count + separate heading from list */
@@ -138,6 +150,60 @@ main {
 .desc { margin-top: 6px }
 
 .empty { color: var(--muted); padding: 16px 0; }
+
+/* Game details header */
+.game-detail-header {
+    display: flex;
+    gap: 20px;
+}
+.game-detail-header .detail-cover {
+    width: 140px;
+    height: 195px;
+    object-fit: cover;
+    flex-shrink: 0;
+}
+.game-detail-info h1 {
+    margin: 0;
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 1.8rem;
+    font-weight: normal;
+    color: var(--heading);
+}
+.detail-description {
+    margin-top: 16px;
+    line-height: 1.5;
+    color: var(--text-soft);
+}
+
+.reviews-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin: 30px 0 12px;
+}
+.reviews-header h2 {
+    margin: 0;
+}
+.reviews-header .btn {
+    flex-shrink: 0;
+    margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+    .game-detail-header {
+        gap: 12px;
+    }
+
+    .game-detail-header .detail-cover {
+        width: 105px;
+        height: 150px;
+    }
+
+    .game-detail-info h1 {
+        font-size: 1.5rem;
+    }
+}
 
 /* Search page: reuse the shared game list and keep the form consistent with other controls. */
 .search-intro { margin: 0 0 8px; color: var(--muted); font-size: 0.9rem; }
@@ -294,18 +360,6 @@ main {
     justify-content: center;
 }
 
-#write-btn {
-    color: var(--text);
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
-}
-
-#write-btn:hover{
-    color: var(--text);
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
-}
-
 .counter { font-size: 0.75rem; color: var(--muted); text-align: right; margin-top: 4px; }
 .counter.over { color: #ff8a80; }
 
@@ -390,53 +444,33 @@ main {
     font-size: 0.85rem;
 }
 
-.nav-links a.create-account-btn {
+/* Account related buttons */
+.account-links a {
+    color: var(--muted);
+    text-decoration: none;
+}
+.account-links a:hover { color: #fff; }
+
+.account-links a.create-account-btn {
     background: var(--accent);
     color: var(--bg);
-    padding: 8px 14px;
+    padding: 6px 12px;
     border-radius: 4px;
     font-weight: bold;
-    border-bottom: none;
 }
+.account-links a.create-account-btn:hover { filter: brightness(1.1); color: var(--bg); }
 
-.nav-links a.create-account-btn:hover {
-    filter: brightness(1.1);
-}
-
-/* Subtle login button */
-.nav-links .login-btn {
+.nav-username { color: var(--accent); font-weight: bold; }
+.logout-form { margin: 0; }
+.logout-btn {
+    background: none;
+    border: 0;
+    padding: 0;
     color: var(--muted);
-    background: transparent;
-    border: 1px solid var(--muted);
-    border-radius: 4px;
-    padding: 6px 12px;
-    font-size: 0.85rem;
-    text-decoration: none;
-    transition: 0.2s;
+    font: inherit;
+    cursor: pointer;
 }
-
-.nav-links .login-btn:hover {
-    color: var(--text);
-    border-color: var(--muted);
-    background: var(--panel-alt);
-}
-
-/* Logged-in user */
-
-.nav-username {
-    display: flex;
-    align-items: center;
-    color: var(--accent);
-    font-size: 1.2rem;
-    font-weight: 700;
-    border-left: 1px solid var(--line);
-    padding: 8px 0 8px 20px;
-    margin-left: 8px;
-    max-width: 180px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
+.logout-btn:hover { color: #fff; }
 
 /* Logout form */
 
