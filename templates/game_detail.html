@@ -4,48 +4,34 @@
 
 {% block content %}
 <div class="game-detail">
-    <div class="game-detail-header">
-        {% if game.get("image_url") %}
-            {% if game.image_url.startswith("http://") or game.image_url.startswith("https://") %}
-                <img 
-                    class="cover detail-cover" 
-                    src="{{ game.image_url }}" 
-                    alt="{{ game.get('title', '') }} cover"
-                >
-            {% else %}
-                <img 
-                    class="cover detail-cover" 
-                    src="{{ url_for('static', filename=game.image_url) }}" 
-                    alt="{{ game.get('title', '') }} cover"
-                >
-            {% endif %}
+  {% if game.get("image_url") %}
+    {% if game.image_url.startswith("http://") or game.image_url.startswith("https://") %}
+      <img class="cover" src="{{ game.image_url }}" alt="{{ game.get('title', '') }} cover">
+    {% else %}
+      <img class="cover" src="{{ url_for('static', filename=game.image_url) }}" alt="{{ game.get('title', '') }} cover">
+    {% endif %}
+  {% endif %}
+
+    <div class="title-row">
+        <h1>{{ game.get("title", "Untitled") }}</h1>
+        {% if game.get("average_rating") is not none %}
+            <span class="rating">★ {{ "%.1f"|format(game.average_rating) }}<small>/10</small></span>
+        {% else %}
+            <span class="no-rating">No reviews</span>
         {% endif %}
+    </div>
+  <p class="meta">
+    {{ game.get("genre", "Unknown genre") }}
+    · {{ game.get("platform", "N/A") }}
+    · {{ game.get("year", "N/A") }}
+  </p>
+  {% if game.get("added_by_username") %}
+    <p class="meta">Added by {{ game.added_by_username }}</p>
+  {% endif %}
 
-        <div class="game-detail-info">
-            <div class="title-row">
-                <h1>{{ game.get("title", "Untitled") }}</h1>
-                {% if game.get("average_rating") is not none %}
-                    <span class="rating">★ {{ "%.1f"|format(game.average_rating) }}<small>/10</small></span>
-                {% else %}
-                    <span class="no-rating">No reviews</span>
-                {% endif %}
-            </div>
-
-            <p class="meta">
-                {{ game.get("genre", "Unknown genre") }}
-                · {{ game.get("platform", "N/A") }}
-                · {{ game.get("year", "N/A") }}
-            </p>
-
-            {% if game.get("added_by_username") %}
-                <p class="meta">Added by {{ game.added_by_username }}</p>
-            {% endif %}
-
-            {% if game.get("description") %}
-                <p class="detail-description">{{ game.description }}</p>
-            {% endif %}
-        </div>
-  </div>
+  {% if game.get("description") %}
+  <p>{{ game.description }}</p>
+  {% endif %}
 
     {% if current_user.is_authenticated 
         and (game.get("added_by") | string) == current_user.get_id() %}
@@ -58,10 +44,57 @@
         </div>
     {% endif %}
 
-    <div class="reviews-header">
-        <h2>Reviews</h2>
-        <a href="/game/{{ game._id }}/review" class="btn btn-primary">Write a review</a>
-    </div>
+  <h2>Reviews</h2>
+        
+  <div class="rating-distribution">
+  
+      <div class="rating-total">
+          <strong>{{ total_reviews }}</strong>
+          <span>reviews</span>
+      </div>
+    
+      <div class="rating-histogram">
+      
+          {% for score in range(1, 11) %}
+      
+              {% set count = rating_counts[score] %}
+      
+              {% if max_rating_count > 0 %}
+                  {% set height = (count / max_rating_count) * 100 %}
+              {% else %}
+                  {% set height = 0 %}
+              {% endif %}
+      
+              <button
+                  type="button"
+                  class="rating-bucket"
+                  aria-label="{{ score }} out of 10: {{ count }} reviews"
+              >
+      
+                  <span class="rating-bar-space">
+                      <span
+                          class="rating-bar"
+                          style="height: {{ height }}%;"
+                      ></span>
+                  </span>
+                
+                  <span class="rating-label">
+                      {{ score }}
+                  </span>
+                
+                  <span class="rating-tooltip">
+                      {{ count }} review{{ 's' if count != 1 else '' }}
+                  </span>
+                
+              </button>
+            
+          {% endfor %}
+            
+      </div>
+    
+  </div>
+  
+  <a href="/game/{{ game._id }}/review" id="write-btn">Write a review</a>
 
   {% if reviews %}
   <ul class="review-list">
@@ -119,6 +152,6 @@
   <p class="empty">No reviews yet.</p>
   {% endif %}
 
-  <a href="/" class="btn btn-secondary">← Back to library</a>
+  <a href="/">← Back to library</a>
 </div>
 {% endblock %}
