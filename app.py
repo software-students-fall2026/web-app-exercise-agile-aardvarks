@@ -1,11 +1,12 @@
 import os
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, abort, url_for
+from flask import Flask, render_template, request, redirect, abort, url_for, flash
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 from pymongo.errors import DuplicateKeyError
 
 import certifi # For establishing trusted connection to AtlasDB
@@ -15,18 +16,22 @@ from flask_login import LoginManager, UserMixin, login_user, logout_user, login_
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = os.getenv("SECRET")
+app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 
+# Makes it explicit when the secret key isn't configured, so the application can't run without it
+if not app.config["SECRET_KEY"]:
+    raise RuntimeError(
+        "SECRET_KEY must be set in the environment."
+    )
 
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
 client = MongoClient(os.getenv("MONGO_URI") ,tlsCAFile = certifi.where()) # where to find trusted certificate to verify Atlas connection
 db = client[os.getenv("MONGO_DBNAME")]
-db.users.create_index("username", unique=True)
+db.users.create_index("username_normalized", unique=True)
 
 LIMITS = {
-    "reviewer": 30,
     "text": 1000,
     "title": 80,
     "genre": 30,
@@ -47,8 +52,8 @@ def inject_limits():
 def length_errors(values):
     # Values: {"reviewer": "...", "text", "..."} -> list of error messages
     errors = []
-    for name, text in values.items():      # e.g. name="reviewer", text="Sam"
-        if len(text) > LIMITS[name]:       # LIMITS["reviewer"] is 30
+    for name, text in values.items():      # e.g. name="title", text="Celeste"
+        if len(text) > LIMITS[name]:       # LIMITS["text"] is 1000
             errors.append(f"{name.capitalize()} must be {LIMITS[name]} characters or fewer (currently {len(text)}).")
     return errors
 
@@ -105,6 +110,22 @@ def update_average_rating(game_id):
     )
 
 
+def owns_review(review):
+    return (
+        review is not None
+        and review.get("user_id") is not None
+        and str(review["user_id"]) == str(current_user.get_id())
+    )
+
+
+def owns_game(game):
+    return (
+        game is not None
+        and game.get("added_by") is not None
+        and str(game["added_by"]) == str(current_user.get_id())
+    )
+
+
 @app.route("/")
 def home():
     # Checks if a sorting algorithm has been selected, if it hasn't (or random sort has been inputted) defaults to title ascending (A-Z)
@@ -148,10 +169,34 @@ def search():
 def game_detail(game_id):
     game = get_game_or_404(game_id)
     reviews = list(db.reviews.find({"game_id": game["_id"]}).sort("created_at", -1))
-    return render_template("game_detail.html", game=game, reviews=reviews)
+
+    # Count how many reviews gave each rating (1-10)
+    rating_counts = {i: 0 for i in range(1, 11)}
+
+    for review in reviews:
+        rating = review.get("rating")
+
+        if rating in rating_counts:
+            rating_counts[rating] += 1
+
+    # Total number of reviews
+    total_reviews = len(reviews)
+
+    # Highest number of reviews for any individual rating
+    max_rating_count = max(rating_counts.values(), default=0)
+
+    return render_template(
+        "game_detail.html",
+        game=game,
+        reviews=reviews,
+        rating_counts=rating_counts,
+        total_reviews=total_reviews,
+        max_rating_count=max_rating_count
+    )
 
 
 @app.route("/add-game", methods=["GET", "POST"])
+@login_required
 def add_game():
     errors = []
     form = {"title": "", "genre": "", "platform": "", "year": "", "description": ""}
@@ -159,11 +204,10 @@ def add_game():
     if request.method == "POST":
         # Copy what the user typed into form, so we can re-show it on errors, and validate inputs
         form = read_game_form()
-        cover_url = request.form.get("cover_url", "").strip()
+        image_url = request.form.get("image_url", "").strip()
         cover_file = request.files.get("cover_file")
         errors, year = validate_game(form)
-        form["cover_url"] = cover_url
-        image_url = None
+        form["image_url"] = image_url
         if cover_file and cover_file.filename:
             filename = secure_filename(cover_file.filename)
             if not filename.lower().endswith(
@@ -188,14 +232,14 @@ def add_game():
                     )
                 )
                 image_url = "uploads/" + filename
-        elif cover_url:
+        elif image_url:
             if not (
-                cover_url.startswith("http://")
-                or cover_url.startswith("https://")
+                image_url.startswith("http://")
+                or image_url.startswith("https://")
             ):
                 errors.append("Please enter a valid image URL.")
             else:
-                image_url = cover_url
+                image_url = image_url
 
         # If no errors, save and go to new game's page
         if not errors:
@@ -207,15 +251,23 @@ def add_game():
                 "description": form["description"],
                 "average_rating": None,
                 "image_url": image_url,
+                "added_by": ObjectId(current_user.get_id()),
+                "added_by_username": current_user.username,
             })
+            flash("Game added successfully.", "success")
             return redirect(url_for("game_detail", game_id=result.inserted_id))
     # GET request, or errors, show the form (with errors and kept values)
     return render_template("add_game.html", errors=errors, form=form)
 
 
 @app.route("/game/<game_id>/edit", methods=["GET", "POST"])
+@login_required
 def edit_game(game_id):
     game = get_game_or_404(game_id)
+
+    if not owns_game(game):
+        abort(403)
+
     errors = []
 
     # Start with the saved values so the form is pre-filled
@@ -227,7 +279,7 @@ def edit_game(game_id):
         "description": game.get("description", ""),
         "image_url": (
             game.get("image_url", "")
-            if game.get("image_url", "").startswith(("http://", "https://"))
+            if (game.get("image_url") or "").startswith(("http://", "https://"))
             else ""
         ),
     }
@@ -237,65 +289,75 @@ def edit_game(game_id):
         errors, year = validate_game(form)
 
         image_url = request.form.get("image_url", "").strip()
+
+        # If a new file was uploaded, save it
+        cover_file = request.files.get("cover_file")
+
+        if cover_file and cover_file.filename:
+            filename = secure_filename(cover_file.filename)
+            cover_file.save(os.path.join(app.static_folder, "uploads", filename))
+            image_url = "uploads/" + filename
+
+        # If no URL or file was provided, keep the existing cover
+        if not image_url:
+            image_url = game.get("image_url", "")
+
         form["image_url"] = image_url
-        image_url = game.get("image_url")
-
-        if image_url:
-            if not (
-                image_url.startswith("http://")
-                or image_url.startswith("https://")
-            ):
-                errors.append("Please enter a valid image URL.")
-
 
         if not errors:
             db.games.update_one(
                 {"_id": game["_id"]},
                 {"$set": {**form}}   # form values
             )
+            flash("Game edited successfully.", "success")
             return redirect(url_for("game_detail", game_id=game["_id"]))
 
     return render_template("add_game.html", errors=errors, form=form, game=game, editing=True)
 
 
 @app.route("/game/<game_id>/delete", methods=["POST"])
+@login_required
 def delete_game(game_id):
     game = get_game_or_404(game_id)
+
+    if not owns_game(game):
+        abort(403)
+
     db.reviews.delete_many({"game_id": game["_id"]})   # reviews first, so none are orphaned
     db.games.delete_one({"_id": game["_id"]})
+    flash("Game deleted successfully.", "success")
     return redirect(url_for("home"))
 
 
 @app.route("/game/<game_id>/review", methods=["GET", "POST"])
+@login_required
 def write_review(game_id):
     # Look up the game, a bad or unknown id is a 404. Have to do this with new modules bc of ObjectId
     game = get_game_or_404(game_id)
 
     errors = []
-    form = {"reviewer": "", "rating": "", "text": ""}
+    form = {"rating": "", "text": ""}
 
     if request.method == "POST":
-        form["reviewer"] = request.form.get("reviewer", "").strip()
         form["rating"] = request.form.get("rating", "").strip()
         form["text"] = request.form.get("text", "").strip()
 
         rating = int(form["rating"])
 
         # Validation
-        if not form["reviewer"]:
-            errors.append("Please enter your name.")
         if not form["text"]:
             errors.append("Please write a review.")
         if not form["rating"]:
             errors.append("Please choose a rating.")
 
-        errors += length_errors({"reviewer": form["reviewer"], "text": form["text"]})
+        errors += length_errors({"text": form["text"]})
 
         if not errors:
             now = datetime.now(timezone.utc)
             db.reviews.insert_one({
                 "game_id": game["_id"], # ObjectId, not the string from the URL
-                "reviewer": form["reviewer"],
+                "user_id": ObjectId(current_user.id),
+                "reviewer": current_user.username,
                 "rating": rating,
                 "text": form["text"],
                 "likes": 0,
@@ -303,12 +365,14 @@ def write_review(game_id):
                 "created_at": now,
                 "updated_at": now,
             })
-            update_average_rating(game["_id"]) # Added by Angelina to save new average rating
-            return redirect(f"/game/{game_id}") # Should work once Sara does details page
+            update_average_rating(game["_id"])
+            flash("Review posted successfully.", "success")
+            return redirect(f"/game/{game_id}")
 
     return render_template("write_review.html", game=game, errors=errors, form=form)
 
 @app.route("/review/<review_id>/edit", methods=["GET","POST"])
+@login_required
 def edit_review(review_id):
     try:
         review = db.reviews.find_one({"_id":ObjectId(review_id)})
@@ -318,27 +382,26 @@ def edit_review(review_id):
     if review is None:
         abort(404)
 
+    if not owns_review(review):
+        abort(403)
+
     game = get_game_or_404(str(review["game_id"]))
 
     errors = []
 
     form = {
-        "reviewer": review["reviewer"],
         "rating": str(review["rating"]),
         "text": review["text"]
     }
 
     if request.method == "POST":
-        form["reviewer"] = request.form.get("reviewer", "").strip()
         form["rating"] = request.form.get("rating", "").strip()
         form["text"] = request.form.get("text", "").strip()
 
-        if not form["reviewer"]:
-            errors.append("Please enter your name.")
         if not form["text"]:
             errors.append("Please write a review.")
 
-        errors += length_errors({"reviewer": form["reviewer"], "text": form["text"]})
+        errors += length_errors({"text": form["text"]})
 
         try:
             rating = int(form["rating"])
@@ -351,7 +414,6 @@ def edit_review(review_id):
             db.reviews.update_one(
                 {"_id": review["_id"]},
                 {"$set": {
-                    "reviewer": form["reviewer"],
                     "rating": rating,
                     "text": form["text"],
                     "updated_at": datetime.now(timezone.utc)
@@ -360,6 +422,7 @@ def edit_review(review_id):
 
             update_average_rating(game["_id"])
 
+            flash("Review edited successfully.", "success")
             return redirect(
                 url_for("game_detail", game_id=game["_id"])
             )
@@ -384,12 +447,16 @@ def delete_review(review_id):
     if review is None:
         abort(404)
 
+    if not owns_review(review):
+        abort(403)
+
     game_id = review["game_id"]
 
     db.reviews.delete_one({"_id": review["_id"]})
 
     update_average_rating(game_id)
 
+    flash("Review deleted successfully.", "success")
     return redirect(url_for("game_detail", game_id=game_id))
 
 @app.route("/create-account", methods=["GET", "POST"])
@@ -398,12 +465,14 @@ def create_account():
 
     if request.method == "POST":
 
-        username = request.form.get("username", "").strip()
+        entered_username = request.form.get("username", "").strip()
+        username_normalized = entered_username.lower()
+
         password = request.form.get("password", "")
         confirm_password = request.form.get("confirm_password", "")
 
         # Validate required fields
-        if not username:
+        if not entered_username:
             errors.append("Please enter a username.")
 
         if len(password) < 8:
@@ -411,7 +480,7 @@ def create_account():
 
         # Validate maximum character lengths
         errors += length_errors({
-            "username": username,
+            "username": entered_username,
             "password": password
         })
 
@@ -422,14 +491,16 @@ def create_account():
         # Return validation errors
         if errors:
             return render_template(
-                "createAccount.html",
-                error=errors[0]
+                "create_account.html",
+                error=errors[0],
+                username=entered_username
             ), 400
 
         hashed_password = generate_password_hash(password)
 
         user = {
-            "username": username,
+            "username": entered_username,
+            "username_normalized": username_normalized,
             "password": hashed_password
         }
 
@@ -437,13 +508,15 @@ def create_account():
             db.users.insert_one(user)
         except DuplicateKeyError:
             return render_template(
-                "createAccount.html",
-                error="This username is already taken."
+                "create_account.html",
+                error="This username is already taken.",
+                username=entered_username
             ), 409
 
+        flash("Account created successfully.", "success")
         return redirect(url_for("home"))
 
-    return render_template("createAccount.html")
+    return render_template("create_account.html", error=None, username="")
 
 class User(UserMixin):
     def __init__(self, user_document):
@@ -469,31 +542,34 @@ def login():
 
     if request.method == "POST":
 
-        username = request.form.get("username", "").strip()
+        entered_username = request.form.get("username", "").strip()
+        username_normalized = entered_username.lower()
         password = request.form.get("password", "")
 
         # Validate required fields
-        if not username or not password:
+        if not entered_username or not password:
             return render_template(
                 "login.html",
-                error="Please enter your username and password."
+                error="Please enter your username and password.",
+                username=entered_username
             ), 400
 
         # Validate maximum character lengths
         errors = length_errors({
-            "username": username,
+            "username": entered_username,
             "password": password
         })
 
         if errors:
             return render_template(
                 "login.html",
-                error=errors[0]
+                error=errors[0],
+                username=entered_username
             ), 400
 
         # Find user in MongoDB
         user_document = db.users.find_one({
-            "username": username
+            "username_normalized": username_normalized
         })
 
         # Verify credentials
@@ -502,7 +578,8 @@ def login():
         ):
             return render_template(
                 "login.html",
-                error="Invalid username or password."
+                error="Invalid username or password.",
+                username=entered_username
             ), 401
 
         # Convert MongoDB document into Flask-Login user
@@ -511,6 +588,7 @@ def login():
         # Log in the user
         login_user(user)
 
+        flash("Logged in successfully.", "success")
         return redirect(url_for("home"))
 
     return render_template("login.html")
@@ -519,6 +597,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    flash("Logged out successfully.", "success")
     return redirect(url_for("home"))
 
 if __name__ == "__main__":
