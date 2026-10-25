@@ -1,7 +1,7 @@
 import os
 from datetime import datetime, timezone
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, abort, url_for
+from flask import Flask, render_template, request, redirect, abort, url_for, flash
 from pymongo import MongoClient
 from bson.objectid import ObjectId
 from bson.errors import InvalidId
@@ -231,6 +231,7 @@ def add_game():
                 "added_by": ObjectId(current_user.get_id()),
                 "added_by_username": current_user.username,
             })
+            flash("Game added successfully.", "success")
             return redirect(url_for("game_detail", game_id=result.inserted_id))
     # GET request, or errors, show the form (with errors and kept values)
     return render_template("add_game.html", errors=errors, form=form)
@@ -285,6 +286,7 @@ def edit_game(game_id):
                 {"_id": game["_id"]},
                 {"$set": {**form}}   # form values
             )
+            flash("Game edited successfully.", "success")
             return redirect(url_for("game_detail", game_id=game["_id"]))
 
     return render_template("add_game.html", errors=errors, form=form, game=game, editing=True)
@@ -297,9 +299,10 @@ def delete_game(game_id):
 
     if not owns_game(game):
         abort(403)
-        
+
     db.reviews.delete_many({"game_id": game["_id"]})   # reviews first, so none are orphaned
     db.games.delete_one({"_id": game["_id"]})
+    flash("Game deleted successfully.", "success")
     return redirect(url_for("home"))
 
 
@@ -339,8 +342,9 @@ def write_review(game_id):
                 "created_at": now,
                 "updated_at": now,
             })
-            update_average_rating(game["_id"]) # Added by Angelina to save new average rating
-            return redirect(f"/game/{game_id}") # Should work once Sara does details page
+            update_average_rating(game["_id"])
+            flash("Review posted successfully.", "success")
+            return redirect(f"/game/{game_id}")
 
     return render_template("write_review.html", game=game, errors=errors, form=form)
 
@@ -395,6 +399,7 @@ def edit_review(review_id):
 
             update_average_rating(game["_id"])
 
+            flash("Review edited successfully.", "success")
             return redirect(
                 url_for("game_detail", game_id=game["_id"])
             )
@@ -428,6 +433,7 @@ def delete_review(review_id):
 
     update_average_rating(game_id)
 
+    flash("Review deleted successfully.", "success")
     return redirect(url_for("game_detail", game_id=game_id))
 
 @app.route("/create-account", methods=["GET", "POST"])
@@ -462,7 +468,7 @@ def create_account():
         # Return validation errors
         if errors:
             return render_template(
-                "createAccount.html",
+                "create_account.html",
                 error=errors[0],
                 username=entered_username
             ), 400
@@ -479,14 +485,15 @@ def create_account():
             db.users.insert_one(user)
         except DuplicateKeyError:
             return render_template(
-                "createAccount.html",
+                "create_account.html",
                 error="This username is already taken.",
                 username=entered_username
             ), 409
 
+        flash("Account created successfully.", "success")
         return redirect(url_for("home"))
 
-    return render_template("createAccount.html", error=None, username="")
+    return render_template("create_account.html", error=None, username="")
 
 class User(UserMixin):
     def __init__(self, user_document):
@@ -558,6 +565,7 @@ def login():
         # Log in the user
         login_user(user)
 
+        flash("Logged in successfully.", "success")
         return redirect(url_for("home"))
 
     return render_template("login.html")
@@ -566,6 +574,7 @@ def login():
 @login_required
 def logout():
     logout_user()
+    flash("Logged out successfully.", "success")
     return redirect(url_for("home"))
 
 if __name__ == "__main__":

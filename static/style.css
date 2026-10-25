@@ -301,7 +301,6 @@ main {
 }
 
 #write-btn:hover{
-    font-size: 150%;
     color: var(--text);
     text-decoration: underline;
     text-decoration-color: var(--accent);
@@ -427,7 +426,7 @@ main {
 .nav-username {
     display: flex;
     align-items: center;
-    color: var(--heading);
+    color: var(--accent);
     font-size: 1.2rem;
     font-weight: 700;
     border-left: 1px solid var(--line);
@@ -460,4 +459,26 @@ main {
     color: var(--text);
     border-color: var(--muted);
     background: var(--panel-alt);
+}
+
+/* Flash messages and popups */
+.flash-message {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    background: var(--panel);
+    overflow-wrap: anywhere;
+}
+
+.flash-success {
+    border-left: 4px solid #70b77e;
+}
+
+.flash-error {
+    border-left: 4px solid #ff8a80;
+}
+
+.flash-info {
+    border-left: 4px solid var(--accent);
 }
