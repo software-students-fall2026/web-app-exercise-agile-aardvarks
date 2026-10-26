@@ -15,6 +15,7 @@
             <div class="account-links">
                 {% if current_user.is_authenticated %}
                     <span class="nav-username">{{ current_user.username }}</span>
+                    <a href="{{ url_for('search', q='my reviews') }}">My Reviews</a>
                     <form action="{{ url_for('logout') }}" method="POST" class="logout-form">
                         <button type="submit" class="logout-btn">Log Out</button>
                     </form>
