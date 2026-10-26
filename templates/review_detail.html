@@ -20,7 +20,7 @@
                 {% endif %}
             </p>
             {% if review.get("text") %}
-                <p class="detail-description">
+                <p class="detail-description review">
                     {{ review.text }}
                 </p>
             {% endif %}
@@ -37,6 +37,43 @@
             Back to game
         </a>
     </div>
-
+    <div class="reviews-header">
+        <h2>Comments</h2>
+    </div>
+    {% if comments %}
+        <ul class="review-list">
+            {% for comment in comments %}
+                <li class="review-item">
+                    <div class="review-content">
+                        <span class="review">
+                            <strong>{{ comment.get("author", "Anonymous") }}</strong>
+                            {% if comment.get("created_at") %}
+                                · {{ comment.created_at.strftime("%b %d, %Y") }}
+                            {% endif %}
+                        </span>
+                        <p class="review-text">
+                            {{ comment.get("text", "") }}
+                        </p>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty">No comments yet</p>
+    {% endif %}
+    {% if current_user.is_authenticated %}
+        <form action="{{ url_for('add_comment', review_id=review._id) }}" method="POST">
+            <div class="field">
+                <label for="text">Add a comment</label>
+                <textarea id="text" name="text" rows="4" maxlength="{{ limits.comment }}" 
+                data-max="{{ limits.comment }}" required ></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                Post comment
+            </button>
+        </form>
+    {% else %}
+        <p class="empty">Log in to leave a comment.</p>
+    {% endif %}
 </div>
 {% endblock %}
