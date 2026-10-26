@@ -38,7 +38,8 @@ LIMITS = {
     "platform": 30,
     "description": 500,
     "username": 30,
-    "password": 128
+    "password": 128,
+    "comment": 500
 }
 
 YEAR_MIN, YEAR_MAX = 1950, 2030
@@ -66,6 +67,15 @@ def get_game_or_404(game_id):
     if game is None:
         abort(404)
     return game
+
+def get_review_or_404(review_id):
+    try:
+        review = db.reviews.find_one({"_id": ObjectId(review_id)})
+    except InvalidId:
+        review = None
+    if review is None:
+        abort(404)
+    return review
 
 
 def read_game_form():
@@ -180,6 +190,20 @@ def game_detail(game_id):
         rating_counts=rating_counts,
         total_reviews=total_reviews,
         max_rating_count=max_rating_count
+    )
+
+@app.route("/review/<review_id>")
+def review_detail(review_id):
+    review = get_review_or_404(review_id)
+    game = get_game_or_404(str(review["game_id"]))
+    comments = list(
+        db.comments.find({"review_id": review["_id"]}).sort("created_at", 1)
+    )
+    return render_template(
+        "review_detail.html",
+        review=review,
+        game=game, 
+        comments=comments
     )
 
 @app.route("/search")
@@ -481,6 +505,24 @@ def delete_review(review_id):
 
     flash("Review deleted successfully.", "success")
     return redirect(url_for("game_detail", game_id=game_id))
+
+@app.route("/review/<review_id>/comment", methods=["POST"])
+@login_required
+def add_comment(review_id):
+    review = get_review_or_404(review_id)
+    text = request.form.get("text", "").strip()
+    if text and len(text) <= LIMITS["comment"]:
+        db.comments.insert_one({
+            "review_id": review["_id"],
+            "author": current_user.username,
+            "text": text,
+            "created_at": datetime.now(timezone.utc)
+        })
+    elif not text:
+        flash("Please write a comment.", "error")
+    else:
+        flash("Comment is too long.", "error")
+    return redirect(url_for("review_detail", review_id=review["_id"]))
 
 @app.route("/create-account", methods=["GET", "POST"])
 def create_account():
