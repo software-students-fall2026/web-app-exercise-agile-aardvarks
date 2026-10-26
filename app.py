@@ -67,6 +67,15 @@ def get_game_or_404(game_id):
         abort(404)
     return game
 
+def get_review_or_404(review_id):
+    try:
+        review = db.reviews.find_one({"_id": ObjectId(review_id)})
+    except InvalidId:
+        review = None
+    if review is None:
+        abort(404)
+    return review
+
 
 def read_game_form():
     # Reads game form fields from the request, and trims them
@@ -180,6 +189,16 @@ def game_detail(game_id):
         rating_counts=rating_counts,
         total_reviews=total_reviews,
         max_rating_count=max_rating_count
+    )
+
+@app.route("/review/<review_id>")
+def review_detail(review_id):
+    review = get_review_or_404(review_id)
+    game = get_game_or_404(str(review["game_id"]))
+    return render_template(
+        "review_detail.html",
+        review=review,
+        game=game
     )
 
 @app.route("/search")

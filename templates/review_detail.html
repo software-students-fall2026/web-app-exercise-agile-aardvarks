@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Review · {{ game.get("title", "Untitled") }}{% endblock %}
+
+{% block content %}
+<div class="game-detail">
+    <div class="game-detail-header">
+        <div class="game-detail-info">
+            <div class="title-row">
+                <h1>Review for {{ game.get("title", "Untitled") }}</h1>
+                <span class="rating">
+                    ★ {{ review.get("rating", "?") }}<small>/10</small>
+                </span>
+            </div>
+
+            <p class="meta">
+                Reviewed by {{ review.get("reviewer", "Anonymous") }}
+                {% if review.get("created_at") %}
+                    · {{ review.created_at.strftime("%b %d, %Y") }}
+                {% endif %}
+            </p>
+            {% if review.get("text") %}
+                <p class="detail-description">
+                    {{ review.text }}
+                </p>
+            {% endif %}
+
+            <p class="meta">
+                {{ review.get("likes", 0) }} likes
+                · {{ review.get("dislikes", 0) }} dislikes
+            </p>
+        </div>
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('game_detail', game_id=game._id) }}" class="btn btn-secondary">
+            Back to game
+        </a>
+    </div>
+
+</div>
+{% endblock %}
